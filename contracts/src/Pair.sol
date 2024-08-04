@@ -9,10 +9,31 @@ import "solmate/utils/FixedPointMathLib.sol";
 import "openzeppelin/utils/math/Math.sol";
 import "reservoir-oracle/ReservoirOracle.sol";
 
+import "v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import "v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "v3-periphery/interfaces/INonfungiblePositionManager.sol";
+
 import "./LpToken.sol";
 import "./Caviar.sol";
 import "./StolenNftFilterOracle.sol";
 
+interface IWETH {
+    function deposit() external payable;
+    function withdraw(uint) external;
+}
+
+interface AggregatorV3Interface {
+    function latestRoundData()
+        external
+        view
+        returns (
+            uint80 roundId,
+            int256 answer,
+            uint256 startedAt,
+            uint256 updatedAt,
+            uint80 answeredInRound
+        );
+}
 /// @title Pair
 /// @author out.eth (@outdoteth)
 /// @notice A pair of an NFT and a base token that can be used to create and trade fractionalized NFTs.
@@ -21,8 +42,8 @@ contract Pair is ERC20, ERC721TokenReceiver {
     using SafeTransferLib for ERC20;
 
     uint256 public constant CLOSE_GRACE_PERIOD = 7 days;
-    uint256 private constant ONE = 1e18;
-    uint256 private constant MINIMUM_LIQUIDITY = 100_000;
+    uint256 private constant _ONE = 1e18;
+    uint256 private constant _MINIMUM_LIQUIDITY = 100_000;
 
     address public immutable nft;
     address public immutable baseToken; // address(0) for ETH
@@ -30,6 +51,14 @@ contract Pair is ERC20, ERC721TokenReceiver {
     LpToken public immutable lpToken;
     Caviar public immutable caviar;
     uint256 public closeTimestamp;
+
+    IUniswapV3Factory public immutable uniswapFactory;
+    ISwapRouter public immutable swapRouter;
+    INonfungiblePositionManager public immutable nonfungiblePositionManager;
+    AggregatorV3Interface public immutable priceFeed;
+
+    address public immutable WETH9;
+    bool public uniswapIntegrated = false;
 
     event Add(uint256 indexed baseTokenAmount, uint256 indexed fractionalTokenAmount, uint256 indexed lpTokenAmount);
     event Remove(uint256 indexed baseTokenAmount, uint256 indexed fractionalTokenAmount, uint256 indexed lpTokenAmount);
@@ -46,13 +75,25 @@ contract Pair is ERC20, ERC721TokenReceiver {
         bytes32 _merkleRoot,
         string memory pairSymbol,
         string memory nftName,
-        string memory nftSymbol
+        string memory nftSymbol,
+        IUniswapV3Factory _uniswapFactory,
+        ISwapRouter _swapRouter,
+        INonfungiblePositionManager _nonfungiblePositionManager,
+        address _WETH9,
+        address _priceFeed
+
     ) ERC20(string.concat(nftName, " fractional token"), string.concat("f", nftSymbol), 18) {
         nft = _nft;
-        baseToken = _baseToken; // use address(0) for native ETH
+        baseToken = _baseToken;
         merkleRoot = _merkleRoot;
         lpToken = new LpToken(pairSymbol);
         caviar = Caviar(msg.sender);
+        uniswapFactory = _uniswapFactory;
+        swapRouter = _swapRouter;
+        nonfungiblePositionManager = _nonfungiblePositionManager;
+        WETH9 = _WETH9;    
+        priceFeed = AggregatorV3Interface(_priceFeed);
+
     }
 
     // ************************ //
@@ -110,9 +151,9 @@ contract Pair is ERC20, ERC721TokenReceiver {
         // mint lp tokens to sender
         lpToken.mint(msg.sender, lpTokenAmount);
 
-        // transfer first MINIMUM_LIQUIDITY lp tokens to the owner
+        // transfer first _MINIMUM_LIQUIDITY lp tokens to the owner
         if (lpTokenSupply == 0) {
-            lpToken.mint(caviar.owner(), MINIMUM_LIQUIDITY);
+            lpToken.mint(caviar.owner(), _MINIMUM_LIQUIDITY);
         }
 
         // transfer base tokens in if the base token is not ETH
@@ -182,37 +223,41 @@ contract Pair is ERC20, ERC721TokenReceiver {
         payable
         returns (uint256 inputAmount)
     {
-        // *** Checks *** //
-
-        // check that the trade has not expired
-        require(deadline == 0 || deadline >= block.timestamp, "Expired");
-
-        // check that correct eth input was sent - if the baseToken equals address(0) then native ETH is used
-        require(baseToken == address(0) ? msg.value == maxInputAmount : msg.value == 0, "Invalid ether input");
-
-        // calculate required input amount using xyk invariant
-        inputAmount = buyQuote(outputAmount);
-
-        // check that the required amount of base tokens is less than the max amount
-        require(inputAmount <= maxInputAmount, "Slippage: amount in");
-
-        // *** Effects *** //
-
-        // transfer fractional tokens to sender
-        _transferFrom(address(this), msg.sender, outputAmount);
-
-        // *** Interactions *** //
-
-        if (baseToken == address(0)) {
-            // refund surplus eth
-            uint256 refundAmount = maxInputAmount - inputAmount;
-            if (refundAmount > 0) msg.sender.safeTransferETH(refundAmount);
+         if (uniswapIntegrated) {
+            return _buyFromUniswap(outputAmount, maxInputAmount, deadline);
         } else {
-            // transfer base tokens in
-            ERC20(baseToken).safeTransferFrom(msg.sender, address(this), inputAmount);
-        }
+            // *** Checks *** //
+            // check that the trade has not expired
+            require(deadline == 0 || deadline >= block.timestamp, "Expired");
 
-        emit Buy(inputAmount, outputAmount);
+            // check that correct eth input was sent - if the baseToken equals address(0) then native ETH is used
+            require(baseToken == address(0) ? msg.value == maxInputAmount : msg.value == 0, "Invalid ether input");
+
+            // calculate required input amount using xyk invariant
+            inputAmount = buyQuote(outputAmount);
+
+            // check that the required amount of base tokens is less than the max amount
+            require(inputAmount <= maxInputAmount, "Slippage: amount in");
+
+            // *** Effects *** //
+
+            // transfer fractional tokens to sender
+            _transferFrom(address(this), msg.sender, outputAmount);
+
+            // *** Interactions *** //
+
+            if (baseToken == address(0)) {
+                // refund surplus eth
+                uint256 refundAmount = maxInputAmount - inputAmount;
+                if (refundAmount > 0) msg.sender.safeTransferETH(refundAmount);
+            } else {
+                // transfer base tokens in
+                ERC20(baseToken).safeTransferFrom(msg.sender, address(this), inputAmount);
+            }
+
+            emit Buy(inputAmount, outputAmount);        
+        }
+     
     }
 
     /// @notice Sells fractional tokens to the pair.
@@ -220,38 +265,33 @@ contract Pair is ERC20, ERC721TokenReceiver {
     /// @param deadline The deadline before the trade expires.
     /// @param minOutputAmount The minimum amount of base tokens to receive.
     /// @return outputAmount The amount of base tokens received.
-    function sell(uint256 inputAmount, uint256 minOutputAmount, uint256 deadline)
-        public
-        returns (uint256 outputAmount)
-    {
-        // *** Checks *** //
+    function sell(uint256 inputAmount, uint256 minOutputAmount, uint256 deadline) public returns (uint256 outputAmount) {
+    // Check if deadline has passed
+    require(deadline == 0 || deadline >= block.timestamp, "Expired");
 
-        // check that the trade has not expired
-        require(deadline == 0 || deadline >= block.timestamp, "Expired");
-
-        // calculate output amount using xyk invariant
+    if (uniswapIntegrated) {
+        return _sellOnUniswap(inputAmount, minOutputAmount, deadline);
+    } else {
+        // Original sell logic
         outputAmount = sellQuote(inputAmount);
 
-        // check that the outputted amount of fractional tokens is greater than the min amount
+        // Check that the outputted amount of fractional tokens is greater than the min amount
         require(outputAmount >= minOutputAmount, "Slippage: amount out");
 
-        // *** Effects *** //
-
-        // transfer fractional tokens from sender
+        // Transfer fractional tokens from sender
         _transferFrom(msg.sender, address(this), inputAmount);
 
-        // *** Interactions *** //
-
         if (baseToken == address(0)) {
-            // transfer ether out
+            // Transfer ether out
             msg.sender.safeTransferETH(outputAmount);
         } else {
-            // transfer base tokens out
+            // Transfer base tokens out
             ERC20(baseToken).safeTransfer(msg.sender, outputAmount);
         }
 
         emit Sell(inputAmount, outputAmount);
     }
+}
 
     // ******************** //
     //      Wrap logic      //
@@ -279,7 +319,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         // *** Effects *** //
 
         // mint fractional tokens to sender
-        fractionalTokenAmount = tokenIds.length * ONE;
+        fractionalTokenAmount = tokenIds.length * _ONE;
         _mint(msg.sender, fractionalTokenAmount);
 
         // *** Interactions *** //
@@ -304,7 +344,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         // *** Effects *** //
 
         // burn fractional tokens from sender
-        fractionalTokenAmount = tokenIds.length * ONE;
+        fractionalTokenAmount = tokenIds.length * _ONE;
         _burn(msg.sender, fractionalTokenAmount);
 
         // Take the fee if withFee is true
@@ -376,7 +416,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
     ) public returns (uint256 baseTokenOutputAmount, uint256 fractionalTokenOutputAmount) {
         // remove liquidity and send fractional tokens and base tokens to sender
         (baseTokenOutputAmount, fractionalTokenOutputAmount) =
-            remove(lpTokenAmount, minBaseTokenOutputAmount, tokenIds.length * ONE, deadline);
+            remove(lpTokenAmount, minBaseTokenOutputAmount, tokenIds.length * _ONE, deadline);
 
         // unwrap the fractional tokens into NFTs and send to sender
         unwrap(tokenIds, withFee);
@@ -393,7 +433,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         returns (uint256 inputAmount)
     {
         // buy fractional tokens using base tokens
-        inputAmount = buy(tokenIds.length * ONE, maxInputAmount, deadline);
+        inputAmount = buy(tokenIds.length * _ONE, maxInputAmount, deadline);
 
         // unwrap the fractional tokens into NFTs and send to sender
         unwrap(tokenIds, false);
@@ -517,7 +557,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
             return Math.min(baseTokenShare, fractionalTokenShare);
         } else {
             // if there is no liquidity then init
-            return Math.sqrt(baseTokenAmount * fractionalTokenAmount) - MINIMUM_LIQUIDITY;
+            return Math.sqrt(baseTokenAmount * fractionalTokenAmount) - _MINIMUM_LIQUIDITY;
         }
     }
 
@@ -603,5 +643,106 @@ contract Pair is ERC20, ERC721TokenReceiver {
         return baseToken == address(0)
             ? address(this).balance - msg.value // subtract the msg.value if the base token is ETH
             : ERC20(baseToken).balanceOf(address(this));
+    }
+
+    function getMarketCap() public view returns (uint256) {
+        return (totalSupply() * price()) / 1e18;
+    }
+    function isThresholdReached() public view returns (bool) {
+        return getMarketCapInUSD() >= 59000 * 1e18; // 59,000 USD with 18 decimals
+    }
+    function integrateWithUniswap() external {
+        require(!uniswapIntegrated, "Already integrated with Uniswap");
+        require(isThresholdReached(), "Threshold not reached");
+
+        uint256 marketCapUSD = getMarketCapInUSD();
+        uint256 burnAmountUSD = 6000 * 1e18; // 6,000 USD with 18 decimals
+        uint256 burnAmount = (burnAmountUSD * totalSupply()) / marketCapUSD;
+        uint256 liquidityAmount = totalSupply() - burnAmount;
+
+        // Burn tokens
+        _burn(address(this), burnAmount);
+
+        // Add liquidity to Uniswap V3
+        _addLiquidityToUniswap(liquidityAmount);
+
+        uniswapIntegrated = true;
+    }
+    function _addLiquidityToUniswap(uint256 amount) private {
+        approve(address(nonfungiblePositionManager), amount);
+
+        INonfungiblePositionManager.MintParams memory params =
+            INonfungiblePositionManager.MintParams({
+                token0: address(this),
+                token1: WETH9,
+                fee: 3000, // 0.3% fee tier
+                tickLower: -887220,  // Corresponds to a price of 0.01
+                tickUpper: 887220,   // Corresponds to a price of 100
+                amount0Desired: amount,
+                amount1Desired: amount, // Assuming 1:1 ratio, adjust as needed
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: address(this),
+                deadline: block.timestamp + 15 minutes
+            });
+
+        nonfungiblePositionManager.mint(params);
+    }
+    function _buyFromUniswap(uint256 outputAmount, uint256 maxInputAmount, uint256 deadline) private returns (uint256) {
+        ISwapRouter.ExactOutputSingleParams memory params =
+            ISwapRouter.ExactOutputSingleParams({
+                tokenIn: WETH9,
+                tokenOut: address(this),
+                fee: 3000,
+                recipient: msg.sender,
+                deadline: deadline,
+                amountOut: outputAmount,
+                amountInMaximum: maxInputAmount,
+                sqrtPriceLimitX96: 0
+            });
+
+        uint256 amountIn = swapRouter.exactOutputSingle{value: maxInputAmount}(params);
+
+        if (amountIn < maxInputAmount) {
+            // Refund excess ETH
+            payable(msg.sender).transfer(maxInputAmount - amountIn);
+        }
+
+        return amountIn;
+    }
+    function _sellOnUniswap(uint256 inputAmount, uint256 minOutputAmount, uint256 deadline) private returns (uint256 outputAmount) {
+        // Approve the router to spend tokens
+        this.approve(address(swapRouter), inputAmount);
+
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
+            tokenIn: address(this),
+            tokenOut: baseToken == address(0) ? WETH9 : baseToken,
+            fee: 3000, // 0.3% fee tier
+            recipient: msg.sender,
+            deadline: deadline,
+            amountIn: inputAmount,
+            amountOutMinimum: minOutputAmount,
+            sqrtPriceLimitX96: 0
+        });
+
+        // Execute the swap
+        outputAmount = swapRouter.exactInputSingle(params);
+
+        // If base token is ETH, unwrap WETH to ETH
+        if (baseToken == address(0)) {
+            IWETH(WETH9).withdraw(outputAmount);
+            msg.sender.safeTransferETH(outputAmount);
+        }
+
+        emit Sell(inputAmount, outputAmount);
+    }
+    function getPrice() public view returns (uint256) {
+        (, int256 _price,,,) = priceFeed.latestRoundData();
+        return uint256(_price);
+    }
+    function getMarketCapInUSD() public view returns (uint256) {
+        uint256 totalTokens = totalSupply();
+        uint256 priceInUSD = getPrice();
+        return (totalTokens * priceInUSD) / 1e18;
     }
 }

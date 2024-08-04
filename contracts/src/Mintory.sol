@@ -9,10 +9,24 @@ import "reservoir-oracle/ReservoirOracle.sol";
 
 contract Mintory {
     CaviarContract public immutable caviar;
+    address public immutable uniswapFactory;
+    address public immutable swapRouter;
+    address public immutable nonfungiblePositionManager;
+    address public immutable WETH9;
     mapping(address => mapping(address => bool)) private _tokenApprovals;
 
-    constructor(address _caviar) {
+    constructor(
+        address _caviar,
+        address _uniswapFactory,
+        address _swapRouter,
+        address _nonfungiblePositionManager,
+        address _WETH9
+    ) {
         caviar = CaviarContract(_caviar);
+        uniswapFactory = _uniswapFactory;
+        swapRouter = _swapRouter;
+        nonfungiblePositionManager = _nonfungiblePositionManager;
+        WETH9 = _WETH9;
     }
 
     function approveToken(address token, uint256 amount) public {
@@ -43,7 +57,16 @@ contract Mintory {
         address baseToken,
         bytes32 merkleRoot
     ) internal returns (address) {
-        return address(caviar.create(nft, baseToken, merkleRoot));
+        return address(caviar.create(
+            nft,
+            baseToken,
+            merkleRoot,
+            uniswapFactory,
+            swapRouter,
+            nonfungiblePositionManager,
+            WETH9,
+            priceFeed
+        ));    
     }
 
     function createNFTAndPair(
