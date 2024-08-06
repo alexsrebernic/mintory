@@ -5,3 +5,4 @@ openzeppelin/=lib/openzeppelin-contracts/contracts/
 solmate/=lib/solmate/src/
 royalty-registry-solidity/=lib/royalty-registry-solidity/contracts/
 reservoir-oracle/=lib/oracle/contracts/
+chainlink/=lib/chainlink/
