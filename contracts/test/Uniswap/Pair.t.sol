@@ -2,9 +2,9 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import "../../src/Pair.sol";
-import "uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import "v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import "v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import {MockV3Aggregator as MockV3AggregatorContract} from "chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
 import "../shared/Fixture.t.sol";
 
