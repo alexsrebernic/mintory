@@ -24,15 +24,14 @@ contract DeployScript is Script {
         address PRICEFEED = vm.envAddress("PRICEFEED_ETH_USD_TEST");
 
         StolenNftFilterOracle s = new StolenNftFilterOracle();
-        Caviar c = new Caviar(
-            address(s),
-            IUniswapV3Factory(UNISWAP_FACTORY),
-            ISwapRouter(UNISWAP_ROUTER),
-            INonfungiblePositionManager(UNISWAP_POSITION_MANAGER),
+        Caviar c = new Caviar(address(s));
+        RouterMintory b = new RouterMintory(
+            address(c),   
+            UNISWAP_FACTORY,
+            UNISWAP_ROUTER,
+            UNISWAP_POSITION_MANAGER,
             WETH,
-            PRICEFEED
-        );
-        RouterMintory b = new RouterMintory(address(c));
+            PRICEFEED);
 
         console.log("caviar:", address(c));
         console.log("stolen nft filter oracle:", address(s));

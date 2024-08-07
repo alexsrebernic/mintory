@@ -73,6 +73,5 @@ contract MintoryTest is Test {
     }
 
 
-
     receive() external payable {}
 }

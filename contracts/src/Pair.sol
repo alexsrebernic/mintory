@@ -9,10 +9,10 @@ import "solmate/utils/FixedPointMathLib.sol";
 import "openzeppelin/utils/math/Math.sol";
 import "reservoir-oracle/ReservoirOracle.sol";
 
-import "v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "v3-periphery/interfaces/INonfungiblePositionManager.sol";
-
+import "uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import "uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import "chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "./LpToken.sol";
 import "./Caviar.sol";
 import "./StolenNftFilterOracle.sol";
@@ -22,18 +22,6 @@ interface IWETH {
     function withdraw(uint) external;
 }
 
-interface AggregatorV3Interface {
-    function latestRoundData()
-        external
-        view
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        );
-}
 /// @title Pair
 /// @author out.eth (@outdoteth)
 /// @notice A pair of an NFT and a base token that can be used to create and trade fractionalized NFTs.
@@ -76,9 +64,9 @@ contract Pair is ERC20, ERC721TokenReceiver {
         string memory pairSymbol,
         string memory nftName,
         string memory nftSymbol,
-        IUniswapV3Factory _uniswapFactory,
-        ISwapRouter _swapRouter,
-        INonfungiblePositionManager _nonfungiblePositionManager,
+        address _uniswapFactory,
+        address _swapRouter,
+        address _nonfungiblePositionManager,
         address _WETH9,
         address _priceFeed
 
@@ -88,9 +76,9 @@ contract Pair is ERC20, ERC721TokenReceiver {
         merkleRoot = _merkleRoot;
         lpToken = new LpToken(pairSymbol);
         caviar = Caviar(msg.sender);
-        uniswapFactory = _uniswapFactory;
-        swapRouter = _swapRouter;
-        nonfungiblePositionManager = _nonfungiblePositionManager;
+        uniswapFactory = IUniswapV3Factory(_uniswapFactory);
+        swapRouter = ISwapRouter(_swapRouter);
+        nonfungiblePositionManager = INonfungiblePositionManager(_nonfungiblePositionManager);
         WETH9 = _WETH9;    
         priceFeed = AggregatorV3Interface(_priceFeed);
 
@@ -645,9 +633,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
             : ERC20(baseToken).balanceOf(address(this));
     }
 
-    function getMarketCap() public view returns (uint256) {
-        return (totalSupply() * price()) / 1e18;
-    }
+ 
     function isThresholdReached() public view returns (bool) {
         return getMarketCapInUSD() >= 59000 * 1e18; // 59,000 USD with 18 decimals
     }
@@ -657,8 +643,8 @@ contract Pair is ERC20, ERC721TokenReceiver {
 
         uint256 marketCapUSD = getMarketCapInUSD();
         uint256 burnAmountUSD = 6000 * 1e18; // 6,000 USD with 18 decimals
-        uint256 burnAmount = (burnAmountUSD * totalSupply()) / marketCapUSD;
-        uint256 liquidityAmount = totalSupply() - burnAmount;
+        uint256 burnAmount = (burnAmountUSD * lpToken.totalSupply()) / marketCapUSD;
+        uint256 liquidityAmount = lpToken.totalSupply() - burnAmount;
 
         // Burn tokens
         _burn(address(this), burnAmount);
@@ -741,7 +727,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         return uint256(_price);
     }
     function getMarketCapInUSD() public view returns (uint256) {
-        uint256 totalTokens = totalSupply();
+        uint256 totalTokens = lpToken.totalSupply();
         uint256 priceInUSD = getPrice();
         return (totalTokens * priceInUSD) / 1e18;
     }

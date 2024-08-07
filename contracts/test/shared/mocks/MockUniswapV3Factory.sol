@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import "uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 
 contract MockUniswapV3Factory is IUniswapV3Factory {
     mapping(address => mapping(address => mapping(uint24 => address))) public override getPool;
