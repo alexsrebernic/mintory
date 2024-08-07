@@ -11,7 +11,7 @@ import "reservoir-oracle/ReservoirOracle.sol";
 
 import "uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import "uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "./interfaces/INonfungiblePositionManager.sol";
+import "uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
 import "chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "./LpToken.sol";
 import "./Caviar.sol";

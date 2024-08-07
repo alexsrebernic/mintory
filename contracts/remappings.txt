@@ -8,3 +8,5 @@ reservoir-oracle/=lib/oracle/contracts/
 uniswap/v3-core/=lib/v3-core/
 uniswap/v3-periphery/=lib/v3-periphery/
 chainlink/=lib/chainlink/
+@uniswap/v3-periphery/=lib/v3-periphery/
+@uniswap/v3-core/=lib/v3-core/
