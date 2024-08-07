@@ -13,3 +13,6 @@
 [submodule "contracts/lib/royalty-registry-solidity"]
 	path = contracts/lib/royalty-registry-solidity
 	url = https://github.com/manifoldxyz/royalty-registry-solidity
+[submodule "contracts/lib/v3-core"]
+	path = contracts/lib/v3-core
+	url = https://github.com/Uniswap/v3-core
