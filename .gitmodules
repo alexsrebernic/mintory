@@ -10,3 +10,6 @@
 [submodule "contracts/lib/solmate"]
 	path = contracts/lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "contracts/lib/royalty-registry-solidity"]
+	path = contracts/lib/royalty-registry-solidity
+	url = https://github.com/manifoldxyz/royalty-registry-solidity
