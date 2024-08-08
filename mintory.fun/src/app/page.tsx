@@ -1,6 +1,6 @@
 import { DisplayCard } from "@/components/DisplayCard/DisplayCard";
 import Hero from "@/components/Hero/Hero";
-import TopArt from "@/components/TopArt/TopArt";
+import Latest from "@/components/Latest/Latest";
 import Image from "next/image";
 
 export default function Home() {
@@ -8,7 +8,7 @@ export default function Home() {
     <>
     <Hero />
     {/* <DisplayCard href="/sample.jpeg" chain="base" name="Test NFT" price="2ETH" creator="Nakamoto" collection="Limited Edition"/> */}
-    <TopArt />
+    <Latest />
     </>
   );
 }
