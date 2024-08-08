@@ -24,6 +24,7 @@ const Navbar = () => {
         },
     ]
     return (
+        <div className='fixed top-0 left-0 right-0'>
         <nav className="flex bg-[#00E692] items-center rounded-b-3xl justify-between p-2 md:p-4">
             <div className='flex justify-center items-center gap-6'>
                 <div className='flex justify-center items-center pb-2'>
@@ -36,9 +37,8 @@ const Navbar = () => {
             <div className='flex'>
                 <SheetComponent orientation='vertical' links={navlinks} className="hidden sm:block" sheetTitle='Welcome to Mintory' sheetDescription='Create & Trade NFTs on Your New Playground'/>
             </div>
-
-
         </nav>
+        </div>
     )
 
 }
