@@ -21,7 +21,7 @@ export function SheetComponent({ orientation, links, className, sheetTitle, shee
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Popcorn />
+                <Popcorn className="block sm:hidden" />
             </SheetTrigger>
             <SheetContent className={className}>
                 <SheetHeader>
