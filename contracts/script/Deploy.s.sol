@@ -17,12 +17,7 @@ contract DeployScript is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        address UNISWAP_FACTORY = vm.envAddress("UNISWAP_FACTORY");
-        address UNISWAP_ROUTER = vm.envAddress("UNISWAP_ROUTER");
-        address UNISWAP_POSITION_MANAGER = vm.envAddress("UNISWAP_POSITION_MANAGER");
-        address PRICEFEED = vm.envAddress("PRICEFEED_ETH_USD");
-
-        address WETH = vm.envAddress("WETH");
+  
 
         StolenNftFilterOracle s = new StolenNftFilterOracle();
         Caviar c = new Caviar(address(s));

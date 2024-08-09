@@ -9,18 +9,9 @@ import "solmate/utils/FixedPointMathLib.sol";
 import "openzeppelin/utils/math/Math.sol";
 import "reservoir-oracle/ReservoirOracle.sol";
 
-import "uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import "uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
-import "uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
-import "chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import "./LpToken.sol";
 import "./Caviar.sol";
 import "./StolenNftFilterOracle.sol";
-
-interface IWETH {
-    function deposit() external payable;
-    function withdraw(uint) external;
-}
 
 /// @title Pair
 /// @author out.eth (@outdoteth)
@@ -30,8 +21,8 @@ contract Pair is ERC20, ERC721TokenReceiver {
     using SafeTransferLib for ERC20;
 
     uint256 public constant CLOSE_GRACE_PERIOD = 7 days;
-    uint256 private constant _ONE = 1e18;
-    uint256 private constant _MINIMUM_LIQUIDITY = 100_000;
+    uint256 private constant ONE = 1e18;
+    uint256 private constant MINIMUM_LIQUIDITY = 100_000;
 
     address public immutable nft;
     address public immutable baseToken; // address(0) for ETH
@@ -39,8 +30,6 @@ contract Pair is ERC20, ERC721TokenReceiver {
     LpToken public immutable lpToken;
     Caviar public immutable caviar;
     uint256 public closeTimestamp;
-
-
 
     event Add(uint256 indexed baseTokenAmount, uint256 indexed fractionalTokenAmount, uint256 indexed lpTokenAmount);
     event Remove(uint256 indexed baseTokenAmount, uint256 indexed fractionalTokenAmount, uint256 indexed lpTokenAmount);
@@ -58,10 +47,9 @@ contract Pair is ERC20, ERC721TokenReceiver {
         string memory pairSymbol,
         string memory nftName,
         string memory nftSymbol
-
     ) ERC20(string.concat(nftName, " fractional token"), string.concat("f", nftSymbol), 18) {
         nft = _nft;
-        baseToken = _baseToken;
+        baseToken = _baseToken; // use address(0) for native ETH
         merkleRoot = _merkleRoot;
         lpToken = new LpToken(pairSymbol);
         caviar = Caviar(msg.sender);
@@ -122,9 +110,9 @@ contract Pair is ERC20, ERC721TokenReceiver {
         // mint lp tokens to sender
         lpToken.mint(msg.sender, lpTokenAmount);
 
-        // transfer first _MINIMUM_LIQUIDITY lp tokens to the owner
+        // transfer first MINIMUM_LIQUIDITY lp tokens to the owner
         if (lpTokenSupply == 0) {
-            lpToken.mint(caviar.owner(), _MINIMUM_LIQUIDITY);
+            lpToken.mint(caviar.owner(), MINIMUM_LIQUIDITY);
         }
 
         // transfer base tokens in if the base token is not ETH
@@ -194,37 +182,37 @@ contract Pair is ERC20, ERC721TokenReceiver {
         payable
         returns (uint256 inputAmount)
     {
-            // *** Checks *** //
-            // check that the trade has not expired
-            require(deadline == 0 || deadline >= block.timestamp, "Expired");
+        // *** Checks *** //
 
-            // check that correct eth input was sent - if the baseToken equals address(0) then native ETH is used
-            require(baseToken == address(0) ? msg.value == maxInputAmount : msg.value == 0, "Invalid ether input");
+        // check that the trade has not expired
+        require(deadline == 0 || deadline >= block.timestamp, "Expired");
 
-            // calculate required input amount using xyk invariant
-            inputAmount = buyQuote(outputAmount);
+        // check that correct eth input was sent - if the baseToken equals address(0) then native ETH is used
+        require(baseToken == address(0) ? msg.value == maxInputAmount : msg.value == 0, "Invalid ether input");
 
-            // check that the required amount of base tokens is less than the max amount
-            require(inputAmount <= maxInputAmount, "Slippage: amount in");
+        // calculate required input amount using xyk invariant
+        inputAmount = buyQuote(outputAmount);
 
-            // *** Effects *** //
+        // check that the required amount of base tokens is less than the max amount
+        require(inputAmount <= maxInputAmount, "Slippage: amount in");
 
-            // transfer fractional tokens to sender
-            _transferFrom(address(this), msg.sender, outputAmount);
+        // *** Effects *** //
 
-            // *** Interactions *** //
+        // transfer fractional tokens to sender
+        _transferFrom(address(this), msg.sender, outputAmount);
 
-            if (baseToken == address(0)) {
-                // refund surplus eth
-                uint256 refundAmount = maxInputAmount - inputAmount;
-                if (refundAmount > 0) msg.sender.safeTransferETH(refundAmount);
-            } else {
-                // transfer base tokens in
-                ERC20(baseToken).safeTransferFrom(msg.sender, address(this), inputAmount);
-            }
+        // *** Interactions *** //
 
-            emit Buy(inputAmount, outputAmount);        
-     
+        if (baseToken == address(0)) {
+            // refund surplus eth
+            uint256 refundAmount = maxInputAmount - inputAmount;
+            if (refundAmount > 0) msg.sender.safeTransferETH(refundAmount);
+        } else {
+            // transfer base tokens in
+            ERC20(baseToken).safeTransferFrom(msg.sender, address(this), inputAmount);
+        }
+
+        emit Buy(inputAmount, outputAmount);
     }
 
     /// @notice Sells fractional tokens to the pair.
@@ -232,29 +220,38 @@ contract Pair is ERC20, ERC721TokenReceiver {
     /// @param deadline The deadline before the trade expires.
     /// @param minOutputAmount The minimum amount of base tokens to receive.
     /// @return outputAmount The amount of base tokens received.
-    function sell(uint256 inputAmount, uint256 minOutputAmount, uint256 deadline) public returns (uint256 outputAmount) {
-    // Check if deadline has passed
-    require(deadline == 0 || deadline >= block.timestamp, "Expired");
+    function sell(uint256 inputAmount, uint256 minOutputAmount, uint256 deadline)
+        public
+        returns (uint256 outputAmount)
+    {
+        // *** Checks *** //
 
-        // Original sell logic
+        // check that the trade has not expired
+        require(deadline == 0 || deadline >= block.timestamp, "Expired");
+
+        // calculate output amount using xyk invariant
         outputAmount = sellQuote(inputAmount);
 
-        // Check that the outputted amount of fractional tokens is greater than the min amount
+        // check that the outputted amount of fractional tokens is greater than the min amount
         require(outputAmount >= minOutputAmount, "Slippage: amount out");
 
-        // Transfer fractional tokens from sender
+        // *** Effects *** //
+
+        // transfer fractional tokens from sender
         _transferFrom(msg.sender, address(this), inputAmount);
 
+        // *** Interactions *** //
+
         if (baseToken == address(0)) {
-            // Transfer ether out
+            // transfer ether out
             msg.sender.safeTransferETH(outputAmount);
         } else {
-            // Transfer base tokens out
+            // transfer base tokens out
             ERC20(baseToken).safeTransfer(msg.sender, outputAmount);
         }
 
         emit Sell(inputAmount, outputAmount);
-}
+    }
 
     // ******************** //
     //      Wrap logic      //
@@ -282,7 +279,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         // *** Effects *** //
 
         // mint fractional tokens to sender
-        fractionalTokenAmount = tokenIds.length * _ONE;
+        fractionalTokenAmount = tokenIds.length * ONE;
         _mint(msg.sender, fractionalTokenAmount);
 
         // *** Interactions *** //
@@ -307,7 +304,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         // *** Effects *** //
 
         // burn fractional tokens from sender
-        fractionalTokenAmount = tokenIds.length * _ONE;
+        fractionalTokenAmount = tokenIds.length * ONE;
         _burn(msg.sender, fractionalTokenAmount);
 
         // Take the fee if withFee is true
@@ -379,7 +376,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
     ) public returns (uint256 baseTokenOutputAmount, uint256 fractionalTokenOutputAmount) {
         // remove liquidity and send fractional tokens and base tokens to sender
         (baseTokenOutputAmount, fractionalTokenOutputAmount) =
-            remove(lpTokenAmount, minBaseTokenOutputAmount, tokenIds.length * _ONE, deadline);
+            remove(lpTokenAmount, minBaseTokenOutputAmount, tokenIds.length * ONE, deadline);
 
         // unwrap the fractional tokens into NFTs and send to sender
         unwrap(tokenIds, withFee);
@@ -396,7 +393,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         returns (uint256 inputAmount)
     {
         // buy fractional tokens using base tokens
-        inputAmount = buy(tokenIds.length * _ONE, maxInputAmount, deadline);
+        inputAmount = buy(tokenIds.length * ONE, maxInputAmount, deadline);
 
         // unwrap the fractional tokens into NFTs and send to sender
         unwrap(tokenIds, false);
@@ -520,7 +517,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
             return Math.min(baseTokenShare, fractionalTokenShare);
         } else {
             // if there is no liquidity then init
-            return Math.sqrt(baseTokenAmount * fractionalTokenAmount) - _MINIMUM_LIQUIDITY;
+            return Math.sqrt(baseTokenAmount * fractionalTokenAmount) - MINIMUM_LIQUIDITY;
         }
     }
 
@@ -607,6 +604,4 @@ contract Pair is ERC20, ERC721TokenReceiver {
             ? address(this).balance - msg.value // subtract the msg.value if the base token is ETH
             : ERC20(baseToken).balanceOf(address(this));
     }
-
-
 }

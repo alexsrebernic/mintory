@@ -22,6 +22,11 @@ contract MockNFT721 is ERC721, Ownable {
         maxSupply = _maxSupply == 0 ? type(uint256).max : _maxSupply;
     }
 
+    function mint(address to, uint256 id) public {
+        _mint(to, id);
+    }
+
+  
     function safeMint(address to) public onlyOwner() returns (uint256)  {
         uint256 tokenId = _tokenIdCounter.current();
         emit AttemptingMint(to, tokenId);

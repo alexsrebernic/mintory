@@ -25,11 +25,6 @@ contract CreatePairScript is Script {
     function create(address nft, address baseToken, string memory rankingFile, address caviar) public returns (Pair) {
         // generate the merkle root
         bytes32 merkleRoot = generateMerkleRoot(rankingFile);
-        address UNISWAP_FACTORY = vm.envAddress("UNISWAP_FACTORY");
-        address UNISWAP_ROUTER = vm.envAddress("UNISWAP_ROUTER");
-        address UNISWAP_POSITION_MANAGER = vm.envAddress("UNISWAP_POSITION_MANAGER");
-        address WETH = vm.envAddress("WETH");
-        address PRICEFEED = vm.envAddress("PRICEFEED_ETH_USD");
         // create the pair
         Pair pair = Caviar(caviar).create(
             nft, 

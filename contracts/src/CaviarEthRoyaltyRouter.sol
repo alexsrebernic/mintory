@@ -7,7 +7,7 @@ import "openzeppelin/interfaces/IERC2981.sol";
 import "solmate/utils/SafeTransferLib.sol";
 import "reservoir-oracle/ReservoirOracle.sol";
 
-import {Pair as PairContract, ERC721TokenReceiver, ERC721} from "./Pair.sol";
+import "./Pair.sol";
 
 /// @title CaviarEthRoyaltyRouter
 /// @author out.eth
@@ -42,10 +42,10 @@ contract CaviarEthRoyaltyRouter is Owned, ERC721TokenReceiver {
         returns (uint256 inputAmount)
     {
         // make the swap
-        inputAmount = PairContract(pair).nftBuy{value: maxInputAmount}(tokenIds, maxInputAmount, deadline);
+        inputAmount = Pair(pair).nftBuy{value: maxInputAmount}(tokenIds, maxInputAmount, deadline);
 
         // payout the royalties
-        address nft = PairContract(pair).nft();
+        address nft = Pair(pair).nft();
         uint256 salePrice = inputAmount / tokenIds.length;
         uint256 totalRoyaltyAmount = _payRoyalties(nft, tokenIds, salePrice);
         inputAmount += totalRoyaltyAmount;
@@ -77,7 +77,7 @@ contract CaviarEthRoyaltyRouter is Owned, ERC721TokenReceiver {
         ReservoirOracle.Message[] calldata messages
     ) public returns (uint256 outputAmount) {
         // transfer the NFTs to this contract
-        address nft = PairContract(pair).nft();
+        address nft = Pair(pair).nft();
         for (uint256 i = 0; i < tokenIds.length; i++) {
             ERC721(nft).safeTransferFrom(msg.sender, address(this), tokenIds[i]);
         }
@@ -86,7 +86,7 @@ contract CaviarEthRoyaltyRouter is Owned, ERC721TokenReceiver {
         _approve(address(nft), pair);
 
         // make the swap
-        outputAmount = PairContract(pair).nftSell(tokenIds, minOutputAmount, deadline, proofs, messages);
+        outputAmount = Pair(pair).nftSell(tokenIds, minOutputAmount, deadline, proofs, messages);
 
         // payout the royalties
         uint256 salePrice = outputAmount / tokenIds.length;

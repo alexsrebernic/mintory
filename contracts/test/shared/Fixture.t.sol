@@ -39,29 +39,17 @@ contract Fixture is Test, ERC721TokenReceiver {
         createPairScript = new CreatePairScript();
         stolenNftFilterOracle = new StolenNftFilterOracle();
 
-
-
-        c = new Caviar(
-            address(stolenNftFilterOracle)
-        );
+        c = new Caviar(address(0));
         m = new MintoryContract(
             address(c)
         );
         bayc = new MockERC721WithRoyaltyContract("yeet", "YEET");
         usd = new MockERC20("us dollar", "USD", 6);
 
-        p = Pair(c.create(
-            address(bayc),
-            address(usd),
-            bytes32(0)
-        ));
+        p = c.create(address(bayc), address(usd), bytes32(0));
         lpToken = LpToken(p.lpToken());
 
-        ethPair = c.create(
-            address(bayc), 
-            address(0), 
-            bytes32(0)
-        );
+        ethPair = c.create(address(bayc), address(0), bytes32(0));
         ethPairLpToken = LpToken(ethPair.lpToken());
 
         address registry = address(new RoyaltyRegistry(address(0)));
