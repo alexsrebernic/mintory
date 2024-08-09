@@ -34,12 +34,7 @@ contract CreatePairScript is Script {
         Pair pair = Caviar(caviar).create(
             nft, 
             baseToken, 
-            merkleRoot,
-            UNISWAP_FACTORY,
-            UNISWAP_ROUTER,
-            UNISWAP_POSITION_MANAGER,
-            WETH,
-            PRICEFEED
+            merkleRoot
             );
         console.log("pair:", address(pair));
         console.log("merkle root:");

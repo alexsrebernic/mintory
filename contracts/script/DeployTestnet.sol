@@ -26,12 +26,8 @@ contract DeployScript is Script {
         StolenNftFilterOracle s = new StolenNftFilterOracle();
         Caviar c = new Caviar(address(s));
         RouterMintory b = new RouterMintory(
-            address(c),   
-            UNISWAP_FACTORY,
-            UNISWAP_ROUTER,
-            UNISWAP_POSITION_MANAGER,
-            WETH,
-            PRICEFEED);
+            address(c)
+        );
 
         console.log("caviar:", address(c));
         console.log("stolen nft filter oracle:", address(s));

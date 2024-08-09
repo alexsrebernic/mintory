@@ -77,7 +77,7 @@ contract WrapTest is Fixture {
         c.setStolenNftFilterOracle(address(stolenNftFilterOracle));
 
         uint256 tokenId = 63;
-        Pair pair = c.create(milady, address(0), bytes32(0));
+        Pair pair =c.create(milady, address(0), bytes32(0));
 
         bytes32 id = 0x026b8d21dd591b867de9a6dfab63e879ab848dadd218fb7d8f30a40847786c12;
         bytes memory payload =

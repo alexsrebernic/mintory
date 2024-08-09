@@ -41,12 +41,7 @@ contract Caviar is Owned {
     function create(    
         address nft,
         address baseToken,
-        bytes32 merkleRoot,
-        address uniswapFactory,
-        address swapRouter,
-        address nonfungiblePositionManager,
-        address WETH9,
-        address priceFeed
+        bytes32 merkleRoot
     ) public returns (Pair pair) {
         // check that the pair doesn't already exist
         require(pairs[nft][baseToken][merkleRoot] == address(0), "Pair already exists");
@@ -64,12 +59,7 @@ contract Caviar is Owned {
             merkleRoot,
             pairSymbol,
             nftName,
-            nftSymbol,
-            uniswapFactory,
-            swapRouter,
-            nonfungiblePositionManager,
-            WETH9,
-            priceFeed
+            nftSymbol
         );
 
         // save the pair

@@ -3,35 +3,18 @@ pragma solidity ^0.8.17;
 
 import "./NFT721.sol";
 import {Caviar as CaviarContract} from "./Caviar.sol";
-import {Pair as PairContract} from "./Pair.sol";
 import "openzeppelin/token/ERC20/IERC20.sol";
 import "reservoir-oracle/ReservoirOracle.sol";
 
 contract Mintory {
     CaviarContract public immutable caviar;
-    address public immutable uniswapFactory;
-    address public immutable swapRouter;
-    address public immutable nonfungiblePositionManager;
-    address public immutable WETH9;
-    address public immutable priceFeed;
 
     mapping(address => mapping(address => bool)) private _tokenApprovals;
 
     constructor(
-        address _caviar,
-        address _uniswapFactory,
-        address _swapRouter,
-        address _nonfungiblePositionManager,
-        address _WETH9,
-        address _priceFeed
-
+        address _caviar
     ) {
         caviar = CaviarContract(_caviar);
-        uniswapFactory = _uniswapFactory;
-        swapRouter = _swapRouter;
-        nonfungiblePositionManager = _nonfungiblePositionManager;
-        WETH9 = _WETH9;
-        priceFeed = _priceFeed;
     }
 
     function _createNFT(
@@ -53,12 +36,7 @@ contract Mintory {
         return address(caviar.create(
             nft,
             baseToken,
-            merkleRoot,
-            uniswapFactory,
-            swapRouter,
-            nonfungiblePositionManager,
-            WETH9,
-            priceFeed
+            merkleRoot
         ));
     }
     function createNFTAndPair(

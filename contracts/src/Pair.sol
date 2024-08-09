@@ -40,13 +40,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
     Caviar public immutable caviar;
     uint256 public closeTimestamp;
 
-    IUniswapV3Factory public immutable uniswapFactory;
-    ISwapRouter public immutable swapRouter;
-    INonfungiblePositionManager public immutable nonfungiblePositionManager;
-    AggregatorV3Interface public immutable priceFeed;
 
-    address public immutable WETH9;
-    bool public uniswapIntegrated = false;
 
     event Add(uint256 indexed baseTokenAmount, uint256 indexed fractionalTokenAmount, uint256 indexed lpTokenAmount);
     event Remove(uint256 indexed baseTokenAmount, uint256 indexed fractionalTokenAmount, uint256 indexed lpTokenAmount);
@@ -63,12 +57,7 @@ contract Pair is ERC20, ERC721TokenReceiver {
         bytes32 _merkleRoot,
         string memory pairSymbol,
         string memory nftName,
-        string memory nftSymbol,
-        address _uniswapFactory,
-        address _swapRouter,
-        address _nonfungiblePositionManager,
-        address _WETH9,
-        address _priceFeed
+        string memory nftSymbol
 
     ) ERC20(string.concat(nftName, " fractional token"), string.concat("f", nftSymbol), 18) {
         nft = _nft;
@@ -76,12 +65,6 @@ contract Pair is ERC20, ERC721TokenReceiver {
         merkleRoot = _merkleRoot;
         lpToken = new LpToken(pairSymbol);
         caviar = Caviar(msg.sender);
-        uniswapFactory = IUniswapV3Factory(_uniswapFactory);
-        swapRouter = ISwapRouter(_swapRouter);
-        nonfungiblePositionManager = INonfungiblePositionManager(_nonfungiblePositionManager);
-        WETH9 = _WETH9;    
-        priceFeed = AggregatorV3Interface(_priceFeed);
-
     }
 
     // ************************ //
@@ -211,9 +194,6 @@ contract Pair is ERC20, ERC721TokenReceiver {
         payable
         returns (uint256 inputAmount)
     {
-         if (uniswapIntegrated) {
-            return _buyFromUniswap(outputAmount, maxInputAmount, deadline);
-        } else {
             // *** Checks *** //
             // check that the trade has not expired
             require(deadline == 0 || deadline >= block.timestamp, "Expired");
@@ -244,7 +224,6 @@ contract Pair is ERC20, ERC721TokenReceiver {
             }
 
             emit Buy(inputAmount, outputAmount);        
-        }
      
     }
 
@@ -257,9 +236,6 @@ contract Pair is ERC20, ERC721TokenReceiver {
     // Check if deadline has passed
     require(deadline == 0 || deadline >= block.timestamp, "Expired");
 
-    if (uniswapIntegrated) {
-        return _sellOnUniswap(inputAmount, minOutputAmount, deadline);
-    } else {
         // Original sell logic
         outputAmount = sellQuote(inputAmount);
 
@@ -278,7 +254,6 @@ contract Pair is ERC20, ERC721TokenReceiver {
         }
 
         emit Sell(inputAmount, outputAmount);
-    }
 }
 
     // ******************** //
@@ -633,102 +608,5 @@ contract Pair is ERC20, ERC721TokenReceiver {
             : ERC20(baseToken).balanceOf(address(this));
     }
 
- 
-    function isThresholdReached() public view returns (bool) {
-        return getMarketCapInUSD() >= 59000 * 1e18; // 59,000 USD with 18 decimals
-    }
-    function integrateWithUniswap() external {
-        require(!uniswapIntegrated, "Already integrated with Uniswap");
-        require(isThresholdReached(), "Threshold not reached");
 
-        uint256 marketCapUSD = getMarketCapInUSD();
-        uint256 burnAmountUSD = 6000 * 1e18; // 6,000 USD with 18 decimals
-        uint256 burnAmount = (burnAmountUSD * lpToken.totalSupply()) / marketCapUSD;
-        uint256 liquidityAmount = lpToken.totalSupply() - burnAmount;
-
-        // Burn tokens
-        _burn(address(this), burnAmount);
-
-        // Add liquidity to Uniswap V3
-        _addLiquidityToUniswap(liquidityAmount);
-
-        uniswapIntegrated = true;
-    }
-    function _addLiquidityToUniswap(uint256 amount) private {
-        approve(address(nonfungiblePositionManager), amount);
-
-        INonfungiblePositionManager.MintParams memory params =
-            INonfungiblePositionManager.MintParams({
-                token0: address(this),
-                token1: WETH9,
-                fee: 3000, // 0.3% fee tier
-                tickLower: -887220,  // Corresponds to a price of 0.01
-                tickUpper: 887220,   // Corresponds to a price of 100
-                amount0Desired: amount,
-                amount1Desired: amount, // Assuming 1:1 ratio, adjust as needed
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: address(this),
-                deadline: block.timestamp + 15 minutes
-            });
-
-        nonfungiblePositionManager.mint(params);
-    }
-    function _buyFromUniswap(uint256 outputAmount, uint256 maxInputAmount, uint256 deadline) private returns (uint256) {
-        ISwapRouter.ExactOutputSingleParams memory params =
-            ISwapRouter.ExactOutputSingleParams({
-                tokenIn: WETH9,
-                tokenOut: address(this),
-                fee: 3000,
-                recipient: msg.sender,
-                deadline: deadline,
-                amountOut: outputAmount,
-                amountInMaximum: maxInputAmount,
-                sqrtPriceLimitX96: 0
-            });
-
-        uint256 amountIn = swapRouter.exactOutputSingle{value: maxInputAmount}(params);
-
-        if (amountIn < maxInputAmount) {
-            // Refund excess ETH
-            payable(msg.sender).transfer(maxInputAmount - amountIn);
-        }
-
-        return amountIn;
-    }
-    function _sellOnUniswap(uint256 inputAmount, uint256 minOutputAmount, uint256 deadline) private returns (uint256 outputAmount) {
-        // Approve the router to spend tokens
-        this.approve(address(swapRouter), inputAmount);
-
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter.ExactInputSingleParams({
-            tokenIn: address(this),
-            tokenOut: baseToken == address(0) ? WETH9 : baseToken,
-            fee: 3000, // 0.3% fee tier
-            recipient: msg.sender,
-            deadline: deadline,
-            amountIn: inputAmount,
-            amountOutMinimum: minOutputAmount,
-            sqrtPriceLimitX96: 0
-        });
-
-        // Execute the swap
-        outputAmount = swapRouter.exactInputSingle(params);
-
-        // If base token is ETH, unwrap WETH to ETH
-        if (baseToken == address(0)) {
-            IWETH(WETH9).withdraw(outputAmount);
-            msg.sender.safeTransferETH(outputAmount);
-        }
-
-        emit Sell(inputAmount, outputAmount);
-    }
-    function getPrice() public view returns (uint256) {
-        (, int256 _price,,,) = priceFeed.latestRoundData();
-        return uint256(_price);
-    }
-    function getMarketCapInUSD() public view returns (uint256) {
-        uint256 totalTokens = lpToken.totalSupply();
-        uint256 priceInUSD = getPrice();
-        return (totalTokens * priceInUSD) / 1e18;
-    }
 }

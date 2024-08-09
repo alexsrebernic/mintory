@@ -30,7 +30,7 @@ contract CreateTest is Fixture {
         vm.etch(baseToken, address(usd).code);
 
         // act
-        Pair pair = c.create(nft, baseToken, bytes32(0));
+        Pair pair =   c.create(nft, baseToken, bytes32(0));
         LpToken lpToken = LpToken(pair.lpToken());
 
         // assert
@@ -51,7 +51,7 @@ contract CreateTest is Fixture {
         bytes32 merkleRoot = bytes32(uint256(0xb00b));
 
         // act
-        address pair = address(c.create(nft, baseToken, merkleRoot));
+        address pair = address(c.create(nft, baseToken, bytes32(0)));
 
         // assert
         assertEq(c.pairs(nft, baseToken, merkleRoot), pair, "Should have saved pair address in pairs");
@@ -62,11 +62,11 @@ contract CreateTest is Fixture {
         address nft = address(bayc);
         address baseToken = address(lpToken);
         bytes32 merkleRoot = bytes32(uint256(0xb00b));
-        c.create(nft, baseToken, merkleRoot);
+        c.create(nft, baseToken, bytes32(0));
 
         // act
         vm.expectRevert("Pair already exists");
-        c.create(nft, baseToken, merkleRoot);
+        c.create(nft, baseToken, bytes32(0));
     }
 
     function testItEmitsCreateEvent() public {
@@ -78,7 +78,7 @@ contract CreateTest is Fixture {
         // act
         vm.expectEmit(true, true, true, true);
         emit Create(nft, baseToken, merkleRoot);
-        c.create(nft, baseToken, merkleRoot);
+        c.create(nft, baseToken, bytes32(0) );
     }
 
     function testItRevertsIfNftCodeNotSet() public {
