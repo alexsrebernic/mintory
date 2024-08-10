@@ -9,7 +9,7 @@ const Latest = () => {
       <div className='h-fit flex flex-col'>
         {/* top */}
         <div className='self-start'>
-          <Image src={"/goodluck.png"} width={100} height={100} alt='Good Luck' />
+          <Image src={"/goodLuck.png"} width={100} height={100} alt='Good Luck' />
         </div>
         {/* bottom */}
         <div className='text-[#DAF936] ml-28'>
