@@ -4,7 +4,7 @@ import { DisplayCard } from '../DisplayCard/DisplayCard'
 
 const Latest = () => {
   return (
-    <div className='relative px-20 top-[-20px] bg-[#7452EE] min-h-[100vh] rounded-t-3xl flex w-full gap-40 items-center justify-between'>
+    <div className='relative px-20 top-[-55px] bg-[#7452EE] min-h-[100vh] rounded-t-3xl flex w-full gap-40 items-center justify-between'>
       {/* left  */}
       <div className='h-fit flex flex-col'>
         {/* top */}
