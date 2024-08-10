@@ -5,7 +5,7 @@ import Image from 'next/image'
 const Hero = () => {
     return (
         <div className='bg-[#A7EF5A] px-20 h-[100vh] w-full items-center justify-center flex flex-col gap-10 '>
-            <div className='w-full flex gap-8 items-center'>
+            <div className='w-full flex gap-8 items-center mt-6'>
                 <div className='flex flex-col justify-start gap-6 items-center'>
                     <h1 className='text-6xl font-extrabold self-start'>Fun & Easy!</h1>
                     <div className='flex flex-col gap-2'>
@@ -15,7 +15,7 @@ const Hero = () => {
                 </div>
 
                 <div>
-                    <Image src={"/MintoryCloud.png"} width={450} height={450} objectFit='cover' alt='Mintory Cloud'/>
+                    <Image src={"/MintoryCloud.png"} width={450} height={450} alt='Mintory Cloud'/>
                 </div>
             </div>
             <div className='w-full flex flex-col justify-start gap-4'>
