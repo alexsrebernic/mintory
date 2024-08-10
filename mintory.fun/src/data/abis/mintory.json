@@ -1,0 +1,75 @@
+[
+    {
+      "type": "constructor",
+      "inputs": [
+        {
+          "name": "_caviar",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    },
+    {
+      "type": "function",
+      "name": "caviar",
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "",
+          "type": "address",
+          "internalType": "contract Caviar"
+        }
+      ],
+      "stateMutability": "view"
+    },
+    {
+      "type": "function",
+      "name": "createNFTAndPair",
+      "inputs": [
+        {
+          "name": "_name",
+          "type": "string",
+          "internalType": "string"
+        },
+        {
+          "name": "_symbol",
+          "type": "string",
+          "internalType": "string"
+        },
+        {
+          "name": "baseURI",
+          "type": "string",
+          "internalType": "string"
+        },
+        {
+          "name": "_maxSupply",
+          "type": "uint256",
+          "internalType": "uint256"
+        },
+        {
+          "name": "baseToken",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "merkleRoot",
+          "type": "bytes32",
+          "internalType": "bytes32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "nftAddress",
+          "type": "address",
+          "internalType": "address"
+        },
+        {
+          "name": "pairAddress",
+          "type": "address",
+          "internalType": "address"
+        }
+      ],
+      "stateMutability": "nonpayable"
+    }
+  ]

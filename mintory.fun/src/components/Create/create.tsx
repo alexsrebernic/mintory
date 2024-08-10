@@ -10,69 +10,38 @@ import { SVGProps } from "react"
 
 export function Create() {
   return (
-    <div className="min-h-screen bg-black text-white p-8">
+    <div className="min-h-screen  text-white p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center mb-8">
-          <ArrowLeftIcon className="w-6 h-6 mr-2" />
-          <h1 className="text-xl font-bold">create project</h1>
+          <ArrowLeftIcon className="w-6 h-6 mr-2 text-black" />
+          <h1 className="text-xl font-bold text-black">create project</h1>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <div className="mb-4">
-              <label htmlFor="project-name" className="block mb-2 text-sm font-medium">
+              <label htmlFor="project-name" className="block mb-2 text-sm font-medium text-black">
                 project name
               </label>
               <Input
                 id="project-name"
                 placeholder="your project's name"
-                className="w-full bg-gray-800 border-gray-700"
+                className="w-full bg-gray-100 border-gray-200 text-gray-500"
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="chain" className="block mb-2 text-sm font-medium">
+              <label htmlFor="chain" className="block mb-2 text-sm font-medium text-black">
                 chain
               </label>
               <Select>
-                <SelectTrigger id="chain" className="w-full bg-gray-800 border-gray-700">
+                <SelectTrigger id="chain" className="w-full bg-gray-100 border-gray-200 placeholder:text-muted-foreground text-muted-foreground">
                   <SelectValue placeholder="Base" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="base">Base</SelectItem>
-                  <SelectItem value="ethereum">Ethereum</SelectItem>
-                  <SelectItem value="polygon">Polygon</SelectItem>
+                  <SelectItem value="optimism">Optimism</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label htmlFor="price" className="block mb-2 text-sm font-medium">
-                  price
-                </label>
-                <div className="flex items-center bg-gray-800 border border-gray-700 p-2 rounded">
-                  <span className="text-sm">0.000577</span>
-                  <span className="ml-2 text-sm">ETH</span>
-                </div>
-              </div>
-              <div>
-                <label htmlFor="end-date" className="block mb-2 text-sm font-medium">
-                  end date
-                </label>
-                <Select>
-                  <SelectTrigger id="end-date" className="w-full bg-gray-800 border-gray-700">
-                    <SelectValue placeholder="7 days" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7-days">7 days</SelectItem>
-                    <SelectItem value="14-days">14 days</SelectItem>
-                    <SelectItem value="30-days">30 days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 mb-4">
-              minters will pay 0.000577 ETH per mint: 0.000577 + 0.000200 protocol fee. proceeds from your projects show
-              in <WalletIcon className="inline w-4 h-4" /> balance
-            </p>
             <a href="#" className="text-sm text-gray-400 underline mb-4 block">
               see more options
             </a>
@@ -80,7 +49,7 @@ export function Create() {
           </div>
           <div className="flex items-center justify-center border-2 border-dashed border-gray-700 rounded-lg p-8">
             <div className="text-center">
-              <PlusIcon className="w-8 h-8 mb-4" />
+              <PlusIcon className="w-8 h-8 mb-4 text-black" />
               <p className="text-sm mb-2">click to add files</p>
               <p className="text-xs text-gray-400 mb-2">or drag & drop media</p>
               <p className="text-xs text-gray-400">jpg, png, mp4, gif or svg</p>
