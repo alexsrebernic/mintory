@@ -5,7 +5,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button"
 import { SVGProps } from "react"
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { useAccount, useContractWrite, useTransaction } from 'wagmi';
+import { useAccount, useWriteContract, useTransaction } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { baseSepolia, optimismSepolia } from 'wagmi/chains';
 import abi from '@/data/abis/mintory.json';
@@ -32,24 +32,11 @@ export function Create() {
   const { address, isConnected } = useAccount();
   const { openConnectModal } = useConnectModal();
 
-  const { data: writeData, write } = useContractWrite({
-    address: MINTORY_ADDRESS,
-    abi: MINTORY_ABI,
-    functionName: 'createNFTAndPair',
-  });
-
-  const { isLoading, isSuccess } = useTransaction({
-    hash: writeData?.hash,
-  });
+  const { writeContract, isPending, isSuccess, data } = useWriteContract();
 
   const onSubmit: SubmitHandler<NFTFormData> = async (data) => {
     if (!isConnected) {
       openConnectModal?.();
-      return;
-    }
-
-    if (!write) {
-      console.error('Write function is not ready');
       return;
     }
 
@@ -61,7 +48,10 @@ export function Create() {
       ? '0x...' // Base Sepolia token address
       : '0x...'; // Optimism Sepolia token address
 
-    write({
+    writeContract({
+      abi: MINTORY_ABI,
+      address: MINTORY_ADDRESS as `0x`,
+      functionName: 'createNFTAndPair',
       args: [
         data.name,
         data.symbol,
@@ -162,8 +152,8 @@ export function Create() {
                 />
               </div>
             )}
-            <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isLoading}>
-              {isLoading ? 'Creating...' : 'create project'}
+            <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isPending}>
+              {isPending ? 'Creating...' : 'create project'}
             </Button>
             {isSuccess && (
               <div className="mt-2 text-green-500">
