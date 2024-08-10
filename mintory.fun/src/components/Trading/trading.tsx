@@ -18,7 +18,7 @@ To read more about using these font, please visit the Next.js documentation:
 - Pages Directory: https://nextjs.org/docs/pages/building-your-application/optimizing/fonts
 **/
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Switch, SwitchThumb, SwitchTrack } from "@/components/ui/switch"
+import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
 import { CartesianGrid, XAxis, Line, LineChart } from "recharts"
 import { ChartTooltipContent, ChartTooltip, ChartContainer } from "@/components/ui/chart"
+import { HTMLAttributes } from "react"
 
 export function Trading() {
   return (
@@ -214,7 +215,7 @@ export function Trading() {
   )
 }
 
-function LinechartChart(props) {
+function LinechartChart(props : HTMLAttributes<HTMLDivElement>) {
   return (
     <div {...props}>
       <ChartContainer

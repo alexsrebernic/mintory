@@ -6,6 +6,7 @@
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { SVGProps } from "react"
 
 export function Create() {
   return (
@@ -92,7 +93,7 @@ export function Create() {
   )
 }
 
-function ArrowLeftIcon(props) {
+function ArrowLeftIcon(props : SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -113,7 +114,7 @@ function ArrowLeftIcon(props) {
 }
 
 
-function PlusIcon(props) {
+function PlusIcon(props : SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -134,7 +135,7 @@ function PlusIcon(props) {
 }
 
 
-function WalletIcon(props) {
+function WalletIcon(props : SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

@@ -19,6 +19,7 @@ To read more about using these font, please visit the Next.js documentation:
 **/
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
+import { SVGProps } from "react"
 
 export function Collection() {
   return (
@@ -245,7 +246,7 @@ export function Collection() {
   )
 }
 
-function SearchIcon(props) {
+function SearchIcon(props : SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
