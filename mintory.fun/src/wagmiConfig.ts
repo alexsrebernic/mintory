@@ -1,19 +1,14 @@
-import {
-  http,
-  createConfig,
-  createStorage,
-  cookieStorage,
-} from "wagmi";
-import { mainnet, sepolia } from "wagmi/chains";
+import { http, createConfig, createStorage, cookieStorage } from "wagmi";
+import { optimismSepolia, baseSepolia } from "wagmi/chains"; 
 
 export const config = createConfig({
-  chains: [mainnet, sepolia],
+  chains: [optimismSepolia, baseSepolia],
   ssr: true,
   storage: createStorage({
     storage: cookieStorage,
   }),
   transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
+    [optimismSepolia.id]: http(),
+    [baseSepolia.id]: http(),
   },
 });
