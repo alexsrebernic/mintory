@@ -5,5 +5,5 @@ export interface ImageTextBannerProps {
   imageurl?: string;
   buttonText?: string;
   onClick?: () => void;
-  className : string;
+  className? : string;
 }
