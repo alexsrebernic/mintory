@@ -61,3 +61,4 @@ Using World ID, creators can authenticate themselves to enhance their credibilit
 - caviar: [0xe6370db02a8Fa089F96a81d9F418621795de9630](https://sepolia.basescan.org/address/0xe6370db02a8Fa089F96a81d9F418621795de9630)
 - stolen nft filter oracle: [0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507](https://sepolia.basescan.org/address/0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507)
 - mintory: [0xC5BfcA5E017be91868a719605FDda3eBD6dfb7EC](https://sepolia.basescan.org/address/0xC5BfcA5E017be91868a719605FDda3eBD6dfb7EC)
+- world ID:[0x6d92f29f836860C649Bc3113e27fB466aDC8bfBf](https://optimism-sepolia.blockscout.com/address/0x6d92f29f836860C649Bc3113e27fB466aDC8bfBf?tab=txs)
