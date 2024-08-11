@@ -51,33 +51,79 @@ export function Create() {
     contractKey: key,
     caviar_address: value.caviar
   }));
-  const CAVIAR_ADDRESS = chain ? chainOptions.find(net => net.id === Number(chain.id) && net.caviar_address)?.caviar_address : undefined;
-  console.log(CAVIAR_ADDRESS)
-  useWatchContractEvent({
-    address: CAVIAR_ADDRESS as `0x${string}`,
-    abi: CAVIAR_ABI,
-    eventName: 'Create',
-    onLogs(logs) {
-      console.log('New pair created:', logs)
-      if (logs && logs.length > 0) {
-        const [log] : any[] = logs;
-        const { args } : { args: any } = log;
-        const relevantLog : any = logs.find(log => log.transactionHash === txHash);
-        if (relevantLog) {
-          // This is definitely our event
-          router.push(`/trading/${relevantLog.args.nft}/${relevantLog.args.baseToken}`);
-        }
+  // console.log(CAVIAR_ADDRESS)
+  // useWatchContractEvent({
+  //   address: CAVIAR_ADDRESS as `0x${string}`,
+  //   abi: CAVIAR_ABI,
+  //   eventName: 'Create',
+  //   onLogs(logs) {
+  //     console.log('New pair created:', logs)
+  //     if (logs && logs.length > 0) {
+  //       const [log] : any[] = logs;
+  //       const { args } : { args: any } = log;
+  //       const relevantLog : any = logs.find(log => log.transactionHash === txHash);
+  //       if (relevantLog) {
+  //         // This is definitely our event
+  //         router.push(`/trade/${relevantLog.args.nft}/${relevantLog.args.baseToken}`);
+  //       }
 
-    }
-  }
-  })
-
+  //   }
+  // }})
+  useEffect(() => {
+    const CAVIAR_ADDRESS = chain ? chainOptions.find(net => net.id === Number(chain.id) && net.caviar_address)?.caviar_address : undefined;
+  
+    const unwatch = publicClient.watchContractEvent({
+      address: CAVIAR_ADDRESS as `0x${string}`,
+      abi: CAVIAR_ABI,
+      eventName: 'Create',
+      onLogs(logs) {
+        console.log(logs)
+        if (logs && logs.length > 0) {
+          const [log] : any[] = logs;
+          const { args } : { args: any } = log;
+          const relevantLog : any = logs.find(log => log.transactionHash === txHash);
+          if (relevantLog) {
+            // This is definitely our event
+            router.push(`/trade/${relevantLog.args.nft}/${relevantLog.args.baseToken}`);
+          }
+  
+      }      },
+    });
+  
+    return () => unwatch();
+  });
   const onSubmit: SubmitHandler<NFTFormData> = async (data) => {
     if (!isConnected) {
       openConnectModal?.();
       return;
     }
+    // Check if the user is on the correct network
+    const selectedChain = chainOptions.find(chain => chain.id === Number(data.chain));
+    if (!selectedChain) {
+      toast.error(`Please select a network`, {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: false,
+        theme: "light",
+      });
+      throw new Error(`Unsupported chain ID: ${data.chain}`);
+    }
 
+    if (chain?.id !== selectedChain.id) {
+      toast.error(`Please switch to ${chain.name} network`, {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: false,
+        theme: "light",
+      });
+      return;
+  }
     setIsUploading(true);
     let imageUrl = '';
 
@@ -98,13 +144,18 @@ export function Create() {
         const result = await response.json();
         imageUrl = result.ipfsUrl;
       } else {
-        return Error('No image provided')
+        toast.error(`Image is required`, {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: false,
+          theme: "light",
+        });
+        return;      
       }
 
-      const selectedChain = chainOptions.find(chain => chain.id === Number(data.chain));
-      if (!selectedChain) {
-        throw new Error(`Unsupported chain ID: ${data.chain}`);
-      }
 
       const baseTokenAddress = addresses[selectedChain.contractKey as keyof typeof addresses].base_token;
 
@@ -123,10 +174,9 @@ export function Create() {
       }, 
       {
         onSuccess:  (response: any) => {
-          console.log(response)
           toast.success("NFT Created Succesfully",
             {
-              position: "bottom-left",
+              position: "bottom-right",
               autoClose: 5000,
               hideProgressBar: false,
               closeOnClick: true,
@@ -143,7 +193,7 @@ export function Create() {
       toast.error(
         'Failed to create NFT. Please try again.',
         {
-          position: "bottom-left",
+          position: "bottom-right",
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
