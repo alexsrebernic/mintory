@@ -70,6 +70,30 @@ Paid: 0.0000166670698119 ETH (1425045 gas * 0.01169582 gwei)
 ✅ Sequence #1 on base-sepolia | Total Paid: 0.0000166670698119 ETH (1425045 gas * avg 0.01169582 gwei)
                                                                                                                                                                                      
 
+                    
+                    == Logs ==
+  caviar eth zap router: 0x311FF9069312455bE8797a45c6be3dd88ab7d993
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 84532
+
+Estimated gas price: 0.022082187 gwei
+
+Estimated total gas used for script: 610719
+
+Estimated amount required: 0.000013486011162453 ETH
+
+==========================
+
+SIMULATION COMPLETE. To broadcast these transactions, add --broadcast and wallet configuration(s) to the previous command. See forge script --help for more.
+
+Transactions saved to: /home/alex/projects/hackatons/mintory/contracts/broadcast/DeployZapRouter.sol/84532/dry-run/run-latest.json
+
+Sensitive values saved to: /home/alex/projects/hackatons/mintory/contracts/cache/DeployZapRouter.sol/84532/dry-run/run-latest.json
+
                                                                                                                                                                     OPTIMISM OP SEPOLIA
 
                                                                                                                                                                     == Logs ==
@@ -97,5 +121,54 @@ Paid: 0.000001439721538455 ETH (1425045 gas * 0.001010299 gwei)
 
 ✅ Sequence #1 on optimism-sepolia | Total Paid: 0.000001439721538455 ETH (1425045 gas * avg 0.001010299 gwei)
                                                                                                                                                                                      
+
+==========================
+
+== Logs ==
+  caviar: 0x5E9dc7618ee23d474D7c7F051439F278D1744Fb4
+  stolen nft filter oracle: 0xF6bc748DB2a7Ad5f414C3903E0b7B6bFeB588e58
+  mintory: 0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11155420
+
+Estimated gas price: 0.001010588 gwei
+
+Estimated total gas used for script: 10610906
+
+Estimated amount required: 0.000010723254272728 ETH
+
+==========================
+⡀ Sequence #1 on optimism-sepolia
+⢀ Sequence #1 on optimism-sepolia
+    ⠁ [00:00:00] [-------------------------------------------------------------------------------------------------------
+⢀ Sequence #1 on optimism-sepolia | Sending transactions [0 - 2]
+    ⠁ [00:00:00] [-------------------------------------------------------------------------------------------------------
+
+##### optimism-sepolia
+✅  [Success]Hash: 0xe31e5d433b6fafa51a78c5d69142a773ba8ab225dcbecb4ad3a40f910bc3075f
+Contract Address: 0x5E9dc7618ee23d474D7c7F051439F278D1744Fb4
+Block: 15788261
+Paid: 0.000005314805360865 ETH (5260647 gas * 0.001010295 gwei)
+
+
+##### optimism-sepolia
+✅  [Success]Hash: 0x874853acf379c56c8481fd20f2709b9e8f8cf1d8ed9871c3d95dbd6783639013
+Contract Address: 0xF6bc748DB2a7Ad5f414C3903E0b7B6bFeB588e58
+Block: 15788261
+Paid: 0.000000739637979795 ETH (732101 gas * 0.001010295 gwei)
+
+
+##### optimism-sepolia
+✅  [Success]Hash: 0x14b08705c1462890b1a8c114fc7c663400e3fe077ee40833a60ec8cd77a95f65
+Contract Address: 0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507
+Block: 15788261
+Paid: 0.00000219417484572 ETH (2171816 gas * 0.001010295 gwei)
+
+✅ Sequence #1 on optimism-sepolia | Total Paid: 0.00000824861818638 ETH (8164564 gas * avg 0.001010295 gwei)
+                                                                                                                         
 
 ==========================

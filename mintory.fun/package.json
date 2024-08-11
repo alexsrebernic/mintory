@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@openzeppelin/merkle-tree": "^1.0.7",
+    "@pinata/sdk": "^2.1.0",
+    "@pythnetwork/pyth-evm-js": "^1.61.0",
+    "@pythnetwork/pyth-sdk-solidity": "^4.0.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",
@@ -38,8 +41,7 @@
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-filters": "^3.0.0",
     "viem": "^2.19.3",
-    "wagmi": "^2.12.5",
-    "@pinata/sdk": "^2.1.0"
+    "wagmi": "^2.12.5"
   },
   "devDependencies": {
     "@types/node": "^20",

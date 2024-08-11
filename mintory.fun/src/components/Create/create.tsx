@@ -15,6 +15,7 @@ import abi from '@/data/abis/mintory.json';
 import addresses from '@/data/contracts.json';
 import CAVIAR_ABI from '@/data/abis/caviar.abi.json'; // Make sure to create this file
 import { Log } from 'viem';
+import { useNetworkConfig } from '@/hooks/useNetworkConfig';
 
 interface NFTFormData {
   name: string;
@@ -26,9 +27,6 @@ interface NFTFormData {
   image?: File;
 }
 
-// Replace with your actual contract ABI and address
-const MINTORY_ABI = abi;
-const MINTORY_ADDRESS = addresses.base_sepolia.mintory; // Your contract address here
 
 
 
@@ -39,38 +37,19 @@ export function Create() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const router = useRouter()
-
+  
   const { address, isConnected, chain } = useAccount();
   const { openConnectModal } = useConnectModal();
 
   const { writeContract, isPending, isSuccess, data: txHash } = useWriteContract();
   const publicClient = usePublicClient()
-  const chainOptions = Object.entries(addresses).map(([key, value]) => ({
-    id: value.chain_id,
-    name: key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-    contractKey: key,
-    caviar_address: value.caviar
-  }));
-  // console.log(CAVIAR_ADDRESS)
-  // useWatchContractEvent({
-  //   address: CAVIAR_ADDRESS as `0x${string}`,
-  //   abi: CAVIAR_ABI,
-  //   eventName: 'Create',
-  //   onLogs(logs) {
-  //     console.log('New pair created:', logs)
-  //     if (logs && logs.length > 0) {
-  //       const [log] : any[] = logs;
-  //       const { args } : { args: any } = log;
-  //       const relevantLog : any = logs.find(log => log.transactionHash === txHash);
-  //       if (relevantLog) {
-  //         // This is definitely our event
-  //         router.push(`/trade/${relevantLog.args.nft}/${relevantLog.args.baseToken}`);
-  //       }
+  const chainOptions = useNetworkConfig()
+// Replace with your actual contract ABI and address
+const MINTORY_ABI = abi;
+const MINTORY_ADDRESS = chainOptions.mintory; // Your contract address here
 
-  //   }
-  // }})
   useEffect(() => {
-    const CAVIAR_ADDRESS = chain ? chainOptions.find(net => net.id === Number(chain.id) && net.caviar_address)?.caviar_address : undefined;
+    const CAVIAR_ADDRESS = chainOptions.caviar;
   
     const unwatch = publicClient.watchContractEvent({
       address: CAVIAR_ADDRESS as `0x${string}`,
@@ -84,7 +63,7 @@ export function Create() {
           const relevantLog : any = logs.find(log => log.transactionHash === txHash);
           if (relevantLog) {
             // This is definitely our event
-            router.push(`/trade/${relevantLog.args.nft}/${relevantLog.args.baseToken}`);
+            router.push(`/trade?collection=${relevantLog.args.nft}`);
           }
   
       }      },
@@ -98,8 +77,9 @@ export function Create() {
       return;
     }
     // Check if the user is on the correct network
-    const selectedChain = chainOptions.find(chain => chain.id === Number(data.chain));
-    if (!selectedChain) {
+    const itsInTheSameChainAsSelected = chainOptions.id == Number(data.chain);
+
+    if (!chainOptions) {
       toast.error(`Please select a network`, {
         position: "bottom-right",
         autoClose: 5000,
@@ -112,7 +92,7 @@ export function Create() {
       throw new Error(`Unsupported chain ID: ${data.chain}`);
     }
 
-    if (chain?.id !== selectedChain.id) {
+    if (!itsInTheSameChainAsSelected) {
       toast.error(`Please switch to ${chain.name} network`, {
         position: "bottom-right",
         autoClose: 5000,
@@ -157,7 +137,7 @@ export function Create() {
       }
 
 
-      const baseTokenAddress = addresses[selectedChain.contractKey as keyof typeof addresses].base_token;
+      const baseTokenAddress = chainOptions.base_token;
 
       writeContract({
         abi: MINTORY_ABI,
