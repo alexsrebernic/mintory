@@ -51,11 +51,14 @@ Harnesses the power of Optimism and the OP Stack to build a scalable, secure, an
 **World ID**:
 Using World ID, creators can authenticate themselves to enhance their credibility and the value of their NFTs. This allows them to gain benefits and wider exposure. General users can then select and trade safe NFTs, reducing the risk of rug pulls.
 
-**Base**:
+**Base**: 
 Credibility is provided through user authentication using the verification function. Verified creators have their NFTs displayed at the top, allowing for more advertising exposure and providing various benefits.
 
-**Block Scout**:
+**Block Scout**: 
 By integrating Blockscout, Mintory.fun not only provides a transparent and trustworthy environment for NFT transactions but also leverages the power of Blockscout’s tools to enhance the user experience, making real-time transaction monitoring a core feature of our platform.
+
+**Pyth**: 
+Effectively integrates Pyth’s Fetch method to retrieve and utilize real-time ETH price data. This approach ensures that our on-chain data is current, trading charts are up-to-date, and users have access to the latest market information, enhancing the overall trading experience on our platform.
 
 ### Smart Contract
 - caviar: [0xe6370db02a8Fa089F96a81d9F418621795de9630](https://sepolia.basescan.org/address/0xe6370db02a8Fa089F96a81d9F418621795de9630)
