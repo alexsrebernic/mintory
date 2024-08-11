@@ -9,6 +9,8 @@ Pump.fun is a platform within the existing Solana ecosystem that allows anyone t
 
 In contrast, Mintory.fun prioritizes the Optimism ecosystem while also leveraging various ecosystems using the OP Stack, and it also supports the Base ecosystem with a focus on ERC-721 NFTs. We aim to recognize NFTs as assets with ownership value, creating a vibrant and liquid NFT ecosystem. Therefore, our services are designed to enhance NFT engagement and liquidity, allowing general users to explore and become familiar with web3 through fun, interest, and creativity, thereby gaining extensive experience.
 
+Twitter: https://x.com/mintorydotfun
+
 ---
 ## 🎡 Architecture
 ![image](https://github.com/user-attachments/assets/ca06a14f-f145-431c-9324-cfd2aa53dd64)
@@ -39,6 +41,23 @@ In contrast, Mintory.fun prioritizes the Optimism ecosystem while also leveragin
 
 ---
 ## 🛠️ Deployments
+
+### How it's Made
+We leverage the Optimism network and provide the OP Stack ecosystem along with the Base ecosystem, offering a variety of networks. Additionally, we support Coinbase smart wallets on Base, allowing users to use a broader range of wallets.
+
+**Base**
+Credibility is provided through user authentication using the verification function. Verified creators have their NFTs displayed at the top, allowing for more advertising exposure and providing various benefits. Provides convenience to users of the Base ecosystem by using Coinbase’s dedicated smart wallet.
+
+**Optimism**
+Provides the ability to create and trade NFTs simply by utilizing the Base Network and Optimism Network.
+
+**Block Scout**
+Through Block Scout, users can view their transaction history, on-chain transaction history, and recent and last transactions of specific NFTs in graphical form. This allows users to see real-time on-chain transaction details within the Mintory platform.
+
+**World ID**
+Using World ID, creators can authenticate themselves to enhance their credibility and the value of their NFTs. This allows them to gain benefits and wider exposure. General users can then select and trade safe NFTs, reducing the risk of rug pulls.
+
+### Smart Contract
 - caviar: [0xe6370db02a8Fa089F96a81d9F418621795de9630](https://sepolia.basescan.org/address/0xe6370db02a8Fa089F96a81d9F418621795de9630)
 - stolen nft filter oracle: [0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507](https://sepolia.basescan.org/address/0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507)
 - mintory: [0xC5BfcA5E017be91868a719605FDda3eBD6dfb7EC](https://sepolia.basescan.org/address/0xC5BfcA5E017be91868a719605FDda3eBD6dfb7EC)
