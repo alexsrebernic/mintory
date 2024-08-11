@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar/Navbar";
-import Providers from "@/Providers";
+import Providers from "@/Providers/Wagmi/WagmiProvider";
 import { headers } from 'next/headers'
 import { cookieToInitialState } from 'wagmi'
-import { config } from "@/wagmiConfig";
+import { config } from "@/Providers/Wagmi/wagmiConfig";
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 const inter = Inter({ subsets: ["latin"] });

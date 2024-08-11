@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ ipfsUrl: `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}` });
-  } catch (error) {
+  } catch (error:any) {
     console.error('Error in upload-to-pinata route:', error);
     return NextResponse.json({ error: error.message || 'Error uploading to Pinata' }, { status: 500 });
   }
