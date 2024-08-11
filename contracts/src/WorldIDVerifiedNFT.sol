@@ -55,7 +55,7 @@ contract WorldIDVerifiedNFT is ERC721, Owned {
             proof
         );
 
-        // Mark the nullifier as used
+        // Mark the nullifier as usedis that
         nullifierHashes[nullifierHash] = true;
 
         // Mint the NFT

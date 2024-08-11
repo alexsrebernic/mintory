@@ -3,7 +3,7 @@ import { optimismSepolia, baseSepolia } from "wagmi/chains";
 
 export const config = createConfig({
   chains: [optimismSepolia, baseSepolia],
-  ssr: true,
+  ssr: false,
   storage: createStorage({
     storage: cookieStorage,
   }),

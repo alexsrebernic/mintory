@@ -1,22 +1,35 @@
 {
     "base_mainnet" : {
+        "name": "Base",
         "caviar": "",
         "stolen nft filter oracle": "",
-        "mintory": ""
+        "mintory": "",
+        "base_token": "0x4200000000000000000000000000000000000006",
+        "chain_id": 8453
     },
     "base_sepolia" : {
+        "name": "Base Sepolia",
         "caviar": "0xe6370db02a8Fa089F96a81d9F418621795de9630",
         "stolen_nft_filter_oracle": "0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507",
-        "mintory": "0xC5BfcA5E017be91868a719605FDda3eBD6dfb7EC"
+        "mintory": "0xC5BfcA5E017be91868a719605FDda3eBD6dfb7EC",
+        "base_token": "0x4200000000000000000000000000000000000006",
+        "chain_id": 84532
     },
     "optimism_mainnet" : {
+        "name": "Optimism",
         "caviar": "",
         "stolen nft filter oracle": "",
-        "mintory": ""
+        "mintory": "",
+        "base_token": "0x4200000000000000000000000000000000000006",
+        "chain_id": 10
+
     },
-    "optimism_goerli" : {
+    "optimism_sepolia" : {
+        "name": "Optimism Sepolia" ,
         "caviar": "",
         "stolen nft filter oracle": "",
-        "mintory": ""
+        "mintory": "",
+        "base_token": "0x4200000000000000000000000000000000000006",
+        "chain_id": 11155420
     }
 }

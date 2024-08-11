@@ -1,15 +1,20 @@
 "use client"
-import React, { useState } from 'react';
+import { toast } from 'react-toastify';
+import React, { useCallback, useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input"
+import { useRouter } from 'next/navigation';
+
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { SVGProps } from "react"
 import { useForm, SubmitHandler } from 'react-hook-form';
-import { useAccount, useWriteContract, useTransaction } from 'wagmi';
+import { useAccount, useWriteContract, useTransaction, useWatchContractEvent, usePublicClient } from 'wagmi';
 import { useConnectModal } from '@rainbow-me/rainbowkit';
 import { baseSepolia, optimismSepolia } from 'wagmi/chains';
 import abi from '@/data/abis/mintory.json';
 import addresses from '@/data/contracts.json';
+import CAVIAR_ABI from '@/data/abis/caviar.abi.json'; // Make sure to create this file
+
 interface NFTFormData {
   name: string;
   chain: string;
@@ -17,22 +22,54 @@ interface NFTFormData {
   symbol: string;
   editionType: 'open' | 'limited';
   tokenLimit?: number;
-  image?: FileList;
+  image?: File;
 }
 
 // Replace with your actual contract ABI and address
 const MINTORY_ABI = abi;
 const MINTORY_ADDRESS = addresses.base_sepolia.mintory; // Your contract address here
 
+
+
 export function Create() {
   const { register, handleSubmit, watch, setValue } = useForm<NFTFormData>();
   const editionType = watch('editionType');
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const router = useRouter()
 
-  const { address, isConnected } = useAccount();
+  const { address, isConnected, chain } = useAccount();
   const { openConnectModal } = useConnectModal();
 
-  const { writeContract, isPending, isSuccess, data } = useWriteContract();
+  const { writeContract, isPending, isSuccess, data: txHash } = useWriteContract();
+  const publicClient = usePublicClient()
+  const chainOptions = Object.entries(addresses).map(([key, value]) => ({
+    id: value.chain_id,
+    name: key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+    contractKey: key,
+    caviar_address: value.caviar
+  }));
+  const CAVIAR_ADDRESS = chain ? chainOptions.find(net => net.id === Number(chain.id) && net.caviar_address)?.caviar_address : undefined;
+  console.log(CAVIAR_ADDRESS)
+  useWatchContractEvent({
+    address: CAVIAR_ADDRESS as `0x${string}`,
+    abi: CAVIAR_ABI,
+    eventName: 'Create',
+    onLogs(logs) {
+      console.log('New pair created:', logs)
+      if (logs && logs.length > 0) {
+        const [log] = logs;
+        const { args, transactionHash } = log;
+        const relevantLog = logs.find(log => log.transactionHash === txHash);
+        if (relevantLog) {
+          // This is definitely our event
+          router.push(`/trading/${relevantLog.args.nft}/${relevantLog.args.baseToken}`);
+        }
+
+    }
+  }
+  })
 
   const onSubmit: SubmitHandler<NFTFormData> = async (data) => {
     if (!isConnected) {
@@ -40,80 +77,162 @@ export function Create() {
       return;
     }
 
-    // Handle image upload (e.g., to IPFS) here
-    // For this example, we'll just use a placeholder URL
-    const imageUrl = 'https://example.com/placeholder.jpg';
+    setIsUploading(true);
+    let imageUrl = '';
 
-    const baseTokenAddress = data.chain === 'baseSepolia' 
-      ? '0x...' // Base Sepolia token address
-      : '0x...'; // Optimism Sepolia token address
+    try {
+      if (data.image) {
+        const formData = new FormData();
+        formData.append('file', data.image);
+        
+        const response = await fetch('/api/upload-to-pinata', {
+          method: 'POST',
+          body: formData,
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to upload image');
+        }
+  
+        const result = await response.json();
+        imageUrl = result.ipfsUrl;
+      } else {
+        return Error('No image provided')
+      }
 
-    writeContract({
-      abi: MINTORY_ABI,
-      address: MINTORY_ADDRESS as `0x`,
-      functionName: 'createNFTAndPair',
-      args: [
-        data.name,
-        data.symbol,
-        imageUrl,
-        data.editionType === 'limited' ? data.tokenLimit : 0,
-        data.description,
-        baseTokenAddress,
-        '0x0000000000000000000000000000000000000000' // Placeholder for merkleRoot
-      ],
-    });
+      const selectedChain = chainOptions.find(chain => chain.id === Number(data.chain));
+      if (!selectedChain) {
+        throw new Error(`Unsupported chain ID: ${data.chain}`);
+      }
+
+      const baseTokenAddress = addresses[selectedChain.contractKey as keyof typeof addresses].base_token;
+
+      writeContract({
+        abi: MINTORY_ABI,
+        address: MINTORY_ADDRESS as `0x${string}`,
+        functionName: 'createNFTAndPair',
+        args: [
+          data.name,
+          data.symbol,
+          imageUrl,
+          data.editionType === 'limited' ? data.tokenLimit : 0,
+          baseTokenAddress,
+          '0x0000000000000000000000000000000000000000000000000000000000000000' // Zero bytes32 for merkleRoot
+        ],
+      }, 
+      {
+        onSuccess:  (response: any) => {
+          console.log(response)
+          toast.success("NFT Created Succesfully",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: false,
+              theme: "light",
+            }
+          )
+        },
+        onError: (response: any) => { console.log(response)}
+      });
+    } catch (error) {
+      console.error('Error creating NFT:', error);
+      toast.error(
+        'Failed to create NFT. Please try again.',
+        {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: false,
+          theme: "light",
+        }
+      )
+    } finally {
+      setIsUploading(false);
+    }
   };
+  
+  const handleFile = useCallback((file: File) => {
+    setValue('image', file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }, [setValue]);
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setImageUrl(url);
+      handleFile(file);
     }
   };
+
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFile(file);
+    }
+  }, [handleFile]);
+
+
+
   return (
     <div className="min-h-screen text-white p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center mb-8">
-          <ArrowLeftIcon className="w-6 h-6 mr-2 text-black" />
-          <h1 className="text-xl font-bold text-black">create project</h1>
+          <h1 className="text-xl font-bold text-black">Create NFT</h1>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <div className="mb-4">
-              <label htmlFor="project-name" className="block mb-2 text-sm font-medium text-black">
-                project name
+              <label htmlFor="nft-name" className="block mb-2 text-sm font-medium text-black">
+                NFT name
               </label>
               <Input
-                id="project-name"
-                placeholder="your project's name"
+                id="nft-name"
+                placeholder="your NFT's name"
                 className="w-full bg-gray-100 border-gray-200 text-gray-500"
                 {...register('name', { required: true })}
               />
             </div>
             <div className="mb-4">
               <label htmlFor="chain" className="block mb-2 text-sm font-medium text-black">
-                chain
+               Chain
               </label>
               <Select onValueChange={(value) => setValue('chain', value)}>
                 <SelectTrigger id="chain" className="w-full bg-gray-100 border-gray-200 placeholder:text-muted-foreground text-muted-foreground">
                   <SelectValue placeholder="Select chain" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="baseSepolia">Base Sepolia</SelectItem>
-                  <SelectItem value="optimismSepolia">Optimism Sepolia</SelectItem>
+                  <SelectItem value="84532">Base Sepolia</SelectItem>
+                  <SelectItem value="11155420">Optimism Sepolia</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="description" className="block mb-2 text-sm font-medium text-black">
-                Description
-              </label>
-              <textarea
-                id="description"
-                className="w-full bg-gray-100 border-gray-200 text-gray-500 rounded-md"
-                {...register('description', { required: true })}
-              />
             </div>
             <div className="mb-4">
               <label htmlFor="symbol" className="block mb-2 text-sm font-medium text-black">
@@ -121,7 +240,8 @@ export function Create() {
               </label>
               <Input
                 id="symbol"
-                className="w-full bg-gray-100 border-gray-200 text-gray-500"
+                placeholder='MINTORY'
+                className="w-full bg-gray-100 border-gray-200 text-gray-500 uppercase"
                 {...register('symbol', { required: true })}
               />
             </div>
@@ -155,25 +275,27 @@ export function Create() {
             <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={isPending}>
               {isPending ? 'Creating...' : 'create project'}
             </Button>
-            {isSuccess && (
-              <div className="mt-2 text-green-500">
-                Successfully created your NFT project!
-              </div>
-            )}
           </div>
-          <div className="flex items-center justify-center border-2 border-dashed border-gray-700 rounded-lg p-8">
+          <div 
+            className={`flex items-center justify-center border-2 border-dashed rounded-lg p-8 ${
+              isDragging ? 'border-purple-500 bg-purple-100' : 'border-gray-700'
+            }`}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+          >
             <div className="text-center">
               <input
                 type="file"
                 id="image"
                 className="hidden"
-                {...register('image')}
                 accept="image/jpeg,image/png,image/gif,image/svg+xml,video/mp4"
                 onChange={handleImageChange}
               />
               <label htmlFor="image" className="cursor-pointer">
-                {imageUrl ? (
-                  <img src={imageUrl} alt="Uploaded preview" className="max-w-full max-h-64 mx-auto mb-4" />
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Uploaded preview" className="max-w-full max-h-64 mx-auto mb-4" />
                 ) : (
                   <PlusIcon className="w-8 h-8 mb-4 text-black mx-auto" />
                 )}
@@ -184,6 +306,7 @@ export function Create() {
               </label>
             </div>
           </div>
+
         </form>
       </div>
     </div>
