@@ -5,6 +5,7 @@
         "stolen nft filter oracle": "",
         "mintory": "",
         "base_token": "0x4200000000000000000000000000000000000006",
+        "world_id_nft_verifier": "",
         "chain_id": 8453
     },
     "base_sepolia" : {
@@ -13,6 +14,7 @@
         "stolen_nft_filter_oracle": "0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507",
         "mintory": "0xC5BfcA5E017be91868a719605FDda3eBD6dfb7EC",
         "base_token": "0x4200000000000000000000000000000000000006",
+        "world_id_nft_verifier": "0xC6aD98d2B42A18D76f7D6b96729C22871E6EB71B",
         "chain_id": 84532
     },
     "optimism_mainnet" : {
@@ -21,14 +23,16 @@
         "stolen nft filter oracle": "",
         "mintory": "",
         "base_token": "0x4200000000000000000000000000000000000006",
+        "world_id_nft_verifier": "",
         "chain_id": 10
 
     },
     "optimism_sepolia" : {
         "name": "Optimism Sepolia" ,
-        "caviar": "",
-        "stolen nft filter oracle": "",
-        "mintory": "",
+        "caviar": "0x5E9dc7618ee23d474D7c7F051439F278D1744Fb4",
+        "stolen nft filter oracle": "0xF6bc748DB2a7Ad5f414C3903E0b7B6bFeB588e58",
+        "mintory": "0x9bB1ab47493e28eeaC93d33F98e4E81dBB01b507",
+        "world_id_nft_verifier": "0x6d92f29f836860C649Bc3113e27fB466aDC8bfBf",
         "base_token": "0x4200000000000000000000000000000000000006",
         "chain_id": 11155420
     }

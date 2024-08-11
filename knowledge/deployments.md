@@ -43,6 +43,7 @@ Paid: 0.000007401528500519 ETH (740743 gas * 0.009992033 gwei)
 ==========================
 
 WORLD ID BASE SEPOLIA
+
 == Logs ==
   WorldIDVerifiedNFT deployed at: 0xC6aD98d2B42A18D76f7D6b96729C22871E6EB71B
 
@@ -68,3 +69,33 @@ Paid: 0.0000166670698119 ETH (1425045 gas * 0.01169582 gwei)
 
 ✅ Sequence #1 on base-sepolia | Total Paid: 0.0000166670698119 ETH (1425045 gas * avg 0.01169582 gwei)
                                                                                                                                                                                      
+
+                                                                                                                                                                    OPTIMISM OP SEPOLIA
+
+                                                                                                                                                                    == Logs ==
+  WorldIDVerifiedNFT deployed at: 0x6d92f29f836860C649Bc3113e27fB466aDC8bfBf
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11155420
+
+Estimated gas price: 0.001010596 gwei
+
+Estimated total gas used for script: 1851939
+
+Estimated amount required: 0.000001871562145644 ETH
+
+==========================
+
+##### optimism-sepolia
+✅  [Success]Hash: 0x246bc312d80e47aefe6d83f2814a974bc258f2aea4ff2d5f8b67b917d10662e8
+Contract Address: 0x6d92f29f836860C649Bc3113e27fB466aDC8bfBf
+Block: 15788192
+Paid: 0.000001439721538455 ETH (1425045 gas * 0.001010299 gwei)
+
+✅ Sequence #1 on optimism-sepolia | Total Paid: 0.000001439721538455 ETH (1425045 gas * avg 0.001010299 gwei)
+                                                                                                                                                                                     
+
+==========================
