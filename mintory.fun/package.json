@@ -38,7 +38,8 @@
     "tailwindcss-animate": "^1.0.7",
     "tailwindcss-filters": "^3.0.0",
     "viem": "^2.19.3",
-    "wagmi": "^2.12.5"
+    "wagmi": "^2.12.5",
+    "@pinata/sdk": "^2.1.0"
   },
   "devDependencies": {
     "@types/node": "^20",
