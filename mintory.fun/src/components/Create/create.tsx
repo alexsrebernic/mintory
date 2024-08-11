@@ -62,7 +62,7 @@ export function Create() {
       if (logs && logs.length > 0) {
         const [log] : any[] = logs;
         const { args } : { args: any } = log;
-        const relevantLog = logs.find(log => log.transactionHash === txHash);
+        const relevantLog : any = logs.find(log => log.transactionHash === txHash);
         if (relevantLog) {
           // This is definitely our event
           router.push(`/trading/${relevantLog.args.nft}/${relevantLog.args.baseToken}`);
