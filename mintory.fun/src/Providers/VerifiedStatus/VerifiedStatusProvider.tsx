@@ -1,9 +1,10 @@
-"use client"
+"use client";
 import { createContext, useContext, useEffect, useState } from "react";
 import { UserVerificationContextType } from "./types";
-import { useAccount } from "wagmi";
-import axios from "axios"
+import { useAccount, useContractRead } from "wagmi";
 import { toast } from "react-toastify";
+import abi from '@/data/abis/world-id.abi.json';
+import addresses from '@/data/contracts.json';
 
 const UserVerificationContext = createContext<UserVerificationContextType>({
     isVerified: false,
@@ -20,28 +21,28 @@ interface UserVerificationProviderProps {
 
 export const UserVerificationProvider: React.FC<UserVerificationProviderProps> = ({ children }) => {
     const [isVerified, setIsVerified] = useState<boolean>(false);
+    const { isConnected, address } = useAccount();
+    const WORLDID_ABI = abi;
+    const WORLDID_ADDRESS = addresses.optimism_sepolia.world_id_nft_verifier;
 
-    const { isConnected } = useAccount()
-
-    const checkVerificationStatus = async () => {
-        try {
-            const response = await axios.get("/api/getVerificationStatus");
-            if (response.data.verified === true) {
-                setIsVerified(true);
-                toast("User Verified");
-            } else {
-                setIsVerified(false);
-            }
-        } catch (error) {
-            console.log("Verification check failed", error);
-        }
-    };
+    const { data, isError, isLoading } = useContractRead({
+        address: WORLDID_ADDRESS as `0x${string}`,
+        abi: WORLDID_ABI,
+        functionName: 'isVerified',
+        args: [address]
+    });
 
     useEffect(() => {
-            if (!isConnected) return;
-
-            checkVerificationStatus();
-        }, [isConnected]);
+        if (isLoading) return;
+        if (isError) {
+            console.log("Verification check failed", isError);
+            return;
+        }
+        if (data !== undefined) {
+            setIsVerified(data === true);
+            console.log("data from verification", data);
+        }
+    }, [data, isError, isLoading, isConnected]);
 
     return (
         <UserVerificationContext.Provider value={{ isVerified, setIsVerified }}>
