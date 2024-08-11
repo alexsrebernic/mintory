@@ -14,6 +14,7 @@ import { baseSepolia, optimismSepolia } from 'wagmi/chains';
 import abi from '@/data/abis/mintory.json';
 import addresses from '@/data/contracts.json';
 import CAVIAR_ABI from '@/data/abis/caviar.abi.json'; // Make sure to create this file
+import { Log } from 'viem';
 
 interface NFTFormData {
   name: string;
@@ -59,8 +60,8 @@ export function Create() {
     onLogs(logs) {
       console.log('New pair created:', logs)
       if (logs && logs.length > 0) {
-        const [log] = logs;
-        const { args, transactionHash } = log;
+        const [log] : any[] = logs;
+        const { args } : { args: any } = log;
         const relevantLog = logs.find(log => log.transactionHash === txHash);
         if (relevantLog) {
           // This is definitely our event

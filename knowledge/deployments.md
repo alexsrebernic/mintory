@@ -41,3 +41,30 @@ Paid: 0.000007401528500519 ETH (740743 gas * 0.009992033 gwei)
                                                                                                                                                                                     
 
 ==========================
+
+WORLD ID BASE SEPOLIA
+== Logs ==
+  WorldIDVerifiedNFT deployed at: 0xC6aD98d2B42A18D76f7D6b96729C22871E6EB71B
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 84532
+
+Estimated gas price: 0.021281179 gwei
+
+Estimated total gas used for script: 1851939
+
+Estimated amount required: 0.000039411445356081 ETH
+
+==========================
+
+##### base-sepolia
+✅  [Success]Hash: 0xb19b676b9547abbb1071a8a04cce99a7449be4ca466f2f5f345177953e55caa6
+Contract Address: 0xC6aD98d2B42A18D76f7D6b96729C22871E6EB71B
+Block: 13802616
+Paid: 0.0000166670698119 ETH (1425045 gas * 0.01169582 gwei)
+
+✅ Sequence #1 on base-sepolia | Total Paid: 0.0000166670698119 ETH (1425045 gas * avg 0.01169582 gwei)
+                                                                                                                                                                                     

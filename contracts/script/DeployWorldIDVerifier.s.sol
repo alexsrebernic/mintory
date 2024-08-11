@@ -14,10 +14,10 @@ contract DeployWorldIDVerifiedNFT is Script {
 
         // Deploy the WorldIDVerifiedNFT contract
         WorldIDVerifiedNFT nft = new WorldIDVerifiedNFT(
-            IWorldID(vm.envAddress("WORLD_ID_ADDRESS")),
-            vm.envString("APP_ID_ADDRESS"),
+            IWorldID(vm.envAddress("WORLD_ID_ADDRESS_BASE_TEST")),
+            vm.envString("APP_ID_BASE"),
             vm.envString("ACTION_ID"),
-            "WorldID Verified NFT",
+            "WorldID Verified NFT Mintory",
             "WIDNFT"
         );
 
