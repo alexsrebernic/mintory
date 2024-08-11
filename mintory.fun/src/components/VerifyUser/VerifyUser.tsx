@@ -7,15 +7,17 @@ import { toast } from 'react-toastify';
 import { useContext } from 'react';
 import { useUserVerification } from '@/Providers/VerifiedStatus/VerifiedStatusProvider';
 
-const { writeContract, isPending, isSuccess, data: txHash } = useWriteContract();
-const {address} = useAccount();
-const { setIsVerified } = useUserVerification()
+
 
 const APPID: string = process.env.NEXT_PUBLIC_APPID!;
 const WORLDID_ABI =  abi
 const WORLDID_ADDRESS = addresses.optimism_sepolia.world_id_nft_verifier
 
 const VerifyUser = () => {
+
+    const { writeContract, isPending, isSuccess, data: txHash } = useWriteContract();
+    const { address } = useAccount();
+    const { setIsVerified } = useUserVerification()
 
     const onSuccess = (proof : ISuccessResult) => {
         console.log("Proof", proof)

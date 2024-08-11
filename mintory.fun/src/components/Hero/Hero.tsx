@@ -1,6 +1,7 @@
 import React from 'react'
 import GenericButton from '../Buttons/GenericButton'
 import Image from 'next/image'
+import Link from 'next/link'
 
 const Hero = () => {
     return (
@@ -21,8 +22,8 @@ const Hero = () => {
             <div className='w-full flex flex-col justify-start gap-4'>
                 <p className='text-xl font-light'>I want to </p>
                 <div className='flex gap-4'>
-                    <GenericButton text='Create NFT' className='text-black bg-[#FCFE53] font-extrabold' />
-                    <GenericButton text='Create NFT' className='text-white bg-[#FF5B5B] font-extrabold' />
+                    <Link href={"/create"}><GenericButton text='Create NFT' className='text-black bg-[#FCFE53] font-extrabold' /></Link>
+                    <Link href={"/collect"}><GenericButton text='Collect NFT' className='text-white bg-[#FF5B5B] font-extrabold' /></Link>
                 </div>
             </div>
         </div>

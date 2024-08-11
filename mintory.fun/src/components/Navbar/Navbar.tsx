@@ -3,11 +3,10 @@ import { SheetComponent } from './SheetComponent';
 import NavLinks from './NavLinks';
 import Image from 'next/image';
 import Link from 'next/link';
-import GenericButton from '../Buttons/GenericButton';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import WalletConnectButton from './WalletConnectButton';
 import { useAccount } from 'wagmi';
 import VerifyUser from '../VerifyUser/VerifyUser';
+import { useUserVerification } from '@/Providers/VerifiedStatus/VerifiedStatusProvider';
 
 
 const Navbar = () => {
@@ -30,7 +29,8 @@ const Navbar = () => {
         },
     ]
 
-    const {address} = useAccount()
+    const {isConnected} = useAccount()
+    const { isVerified } = useUserVerification()
 
     return (
         <div className='fixed top-0 left-0 right-0 z-[5]'>
@@ -44,7 +44,9 @@ const Navbar = () => {
                 <NavLinks orientation='horizontal' links={navlinks} className="hidden sm:flex gap-6"/>
             </div>
             <div className='flex items-center gap-3'>
-                {address && <VerifyUser />}
+                    {isConnected && (isVerified ? 
+                    <Image src={"/icons/verifiedIcon.png"} height={40} width={40} alt='Verified User' className='hover:rotate-12 hover:scale-105'/>
+                    : <VerifyUser />) }
                 <ConnectButton />
                 {/* <WalletConnectButton /> */}
                 <SheetComponent orientation='vertical' links={navlinks} className="hidden sm:block" sheetTitle='Welcome to Mintory' sheetDescription='Create & Trade NFTs on Your New Playground'/>

@@ -29,7 +29,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers initialState={initialState}>
           <Navbar />
+          <div className="pt-20">
             {children}
+          </div>
         </Providers>
         <ToastContainer
         position="top-right"
